@@ -134,7 +134,7 @@ summarise_new_ages <- function(new_ages){
 summarise_age_models <- function(hamstr_fit){
   
   if (is_hamstr_interpolated_ages(hamstr_fit)){
-    age_summary <-summarise_new_ages(hamstr_fit)
+    age_summary <- summarise_new_ages(hamstr_fit)
   } else {
     age_summary <- rstan::summary(hamstr_fit$fit, par = "c_ages")[["summary"]] %>% 
       tibble::as_tibble(., rownames = "par")
