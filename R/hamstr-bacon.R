@@ -93,7 +93,7 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
 
   posterior <- utils::read.table(outflnm, header = FALSE)
   
-  #age_mods <- return_age_mods(outflnm, thick = dpars$thick, d.min = d.min)
+  #age_mods <- return_bacon_age_mods(outflnm, thick = dpars$thick, d.min = d.min)
 
   out <- list(pars = par_list, posterior = posterior, data = d)
   
@@ -113,7 +113,15 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
 }
 
 
-return_age_mods <- function(hamstr_bacon_fit){
+#' Title
+#'
+#' @param hamstr_bacon_fit 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+return_bacon_age_mods <- function(hamstr_bacon_fit){
   
   posterior <- hamstr_bacon_fit$posterior
   pars <- hamstr_bacon_fit$pars
@@ -132,15 +140,49 @@ return_age_mods <- function(hamstr_bacon_fit){
   age_mods <- age_mods[, c("ind", "depth", "values")]
   names(age_mods) <- c("iter", "depth", "age")
   
+  age_mods$iter <- readr::parse_number(as.character(age_mods$iter))
+  
   return(dplyr::as_tibble(age_mods))
   
 }
 
 
+#' Interpolate Age Models at Given Depths
+#' @description Method for generic function predict. Returns the posterior age
+#' models interpolated to new depths given in new_depth.
+#' @param object 
+#' @param new_depth
+#' @inheritParams interpolate_bacon_age_models
+#' @return
+#'
+#' @examples
+#' @export
+#' @method predict hamstr_bacon_fit
+predict.hamstr_bacon_fit <- function(object, new_depth = NULL){
+  
+   interpolate_bacon_age_models(object, new_depth)
+  
+}
+
+
+#' Title
+#'
+#' @param hamstr_bacon_fit 
+#' @param new_depth 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 interpolate_bacon_age_models <- function(hamstr_bacon_fit, new_depth){
   
+  if (is.null(new_depth)) {
+    new_depth <- hamstr_bacon_fit$data$depth
+  }
+  
+  
   # get posterior age models
-  pst_age <- hamstr::return_age_mods(hamstr_bacon_fit)
+  pst_age <- hamstr::return_bacon_age_mods(hamstr_bacon_fit)
   
   new_age <- pst_age %>% 
     dplyr::group_by(iter) %>% 
@@ -153,7 +195,7 @@ interpolate_bacon_age_models <- function(hamstr_bacon_fit, new_depth){
     }) %>% 
     dplyr::ungroup()
   
-  class(new_age) <- append(class(new_age), "hamstr_bacon_interpolated_ages")
+  class(new_age) <- append("hamstr_bacon_interpolated_ages", class(new_age))
   
   return(new_age)
 }
@@ -176,24 +218,57 @@ summary.hamstr_bacon_fit <- function(object){
 }
 
 
+#' Summarise hamstr_bacon Age Models
+#'
+#' @param object 
+#' @param type 
+#'
+#' @return
+#'
+#' @examples
+#' @export
+#' @method summary hamstr_bacon_interpolated_ages
+summary.hamstr_bacon_interpolated_ages <- function(object){
+  
+  summarise_interpolated_bacon_age_models(object)
+  
+}
+
+
 summarise_bacon_age_models <- function(hamstr_bacon_fit){
   
-  age_mods <- hamstr::return_age_mods(hamstr_bacon_fit)
+  age_mods <- hamstr::return_bacon_age_mods(hamstr_bacon_fit)
   
   age_summary <- age_mods %>% 
     dplyr::group_by(depth) %>% 
     dplyr::summarise(mean = mean(age),
               sd = stats::sd(age),
-              `2.5%` = stats::quantile(age, probs = 0.025),
-              `25%` = stats::quantile(age, probs = 0.25),
-              `50%` = stats::quantile(age, probs = 0.5),
-              `75%` = stats::quantile(age, probs = 0.75),
-              `97.5%` = stats::quantile(age, probs = 0.975),
+              `2.5%` = stats::quantile(age, probs = 0.025, na.rm = T),
+              `25%` = stats::quantile(age, probs = 0.25, na.rm = T),
+              `50%` = stats::quantile(age, probs = 0.5, na.rm = T),
+              `75%` = stats::quantile(age, probs = 0.75, na.rm = T),
+              `97.5%` = stats::quantile(age, probs = 0.975, na.rm = T),
               )
   
   return(age_summary)
 }
 
+
+summarise_interpolated_bacon_age_models <- function(age_mods){
+  
+  age_summary <- age_mods %>% 
+    dplyr::group_by(depth) %>% 
+    dplyr::summarise(mean = mean(age),
+                     sd = stats::sd(age),
+                     `2.5%` = stats::quantile(age, probs = 0.025, na.rm = T),
+                     `25%` = stats::quantile(age, probs = 0.25, na.rm = T),
+                     `50%` = stats::quantile(age, probs = 0.5, na.rm = T),
+                     `75%` = stats::quantile(age, probs = 0.75, na.rm = T),
+                     `97.5%` = stats::quantile(age, probs = 0.975, na.rm = T),
+    )
+  
+  return(age_summary)
+}
 
 
 
