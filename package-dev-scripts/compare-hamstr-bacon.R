@@ -108,18 +108,17 @@ set.seed(1)
 #ar.mod <- arima0(PaleoSpec::SimPowerlaw(1.5, 1e05), order = c(10,0,0))
 #ar.cfs <- head(ar.mod$coef, -1)
 
-ar.cfs <- c(0.7)
+ar.cfs <- c(0.75)
 
-ad1 <- SimulateAgeDepth(top = 100, bottom = 200, d_depth = 1, gamma_shape = 1.5, gamma_mean = 20, ar1 = ar.cfs) %>% 
+ad1 <- SimulateAgeDepth(top = 100, bottom = 500, d_depth = 1, gamma_shape = 0.5, gamma_mean = 30, ar1 = ar.cfs) %>% 
   tbl_df()
 
 ad1 <- ad1 %>% 
   #rowwise() %>% 
   mutate(rad_age = Bchron::unCalibrate(age, type = "ages")) %>% 
-  mutate(sampled = (depth %% 6 == 1), 
-         rad_age_sigma = 35) %>% 
+  mutate(sampled = (depth %% 48 == 0), 
+         rad_age_sigma = 20 + age * 0.02) %>% 
   mutate(rad_age_hat = rnorm(n(), rad_age, rad_age_sigma))
-
 
 
 #plot(acc.rates_yr_cm~depth, type = "l", data = ad1, ylim = c(0, max(ad1$acc.rates_yr_cm, na.rm = T)))
@@ -132,18 +131,47 @@ ad1_samp <- ad1 %>%
 
 ad1_samp <- calibrate_14C_age(ad1_samp, "rad_age_hat", "rad_age_sigma")
 
+lm(age ~ depth, data = ad1_samp)
+
+if (parallel::detectCores() >= 3) options(mc.cores = 3)
+
+
+
+ham1 <- hamstr(depth = ad1_samp$depth, obs_age = ad1_samp$age.14C.cal, obs_err = ad1_samp$age.14C.cal.se,
+               top_depth = min(ad1$depth), bottom_depth = max(ad1$depth),
+               K = optimal_K(400, 5))
+
 
 ham2 <- hamstr(depth = ad1_samp$depth, obs_age = ad1_samp$age.14C.cal, obs_err = ad1_samp$age.14C.cal.se,
                top_depth = min(ad1$depth), bottom_depth = max(ad1$depth))
 
-hb2 <- hamstr_bacon(depth = ad1_samp$depth, obs_age = ad1_samp$rad_age_hat, obs_err = ad1_samp$rad_age_sigma, thick = 5,
+ham3 <- hamstr(depth = ad1_samp$depth, obs_age = ad1_samp$age.14C.cal, obs_err = ad1_samp$age.14C.cal.se,
+               top_depth = min(ad1$depth), bottom_depth = max(ad1$depth),
+               #mem_mean = 0.5, mem_strength = 2,
+               K = 400)
+
+#ham3 <- ham2
+
+system.time(
+hb2 <- hamstr_bacon(depth = ad1_samp$depth, obs_age = ad1_samp$rad_age_hat, obs_err = ad1_samp$rad_age_sigma,
+                    thick = 5, acc.mean = 30, acc.shape = 1.5,
                     d.min = min(ad1$depth), d.max = max(ad1$depth))
+)
+
+
+plot(ham1, type = "age_models") +
+  geom_line(data = ad1, aes(y = age), colour = "red")
 
 plot(ham2, type = "age_models") +
   geom_line(data = ad1, aes(y = age), colour = "red")
 
-plot_summary_bacon_age_models(hb2)+
+plot(ham3, type = "age_models") +
   geom_line(data = ad1, aes(y = age), colour = "red")
+
+plot(ham3, summarise  =FALSE, n.iter = 100)
+
+plot_summary_bacon_age_models(hb2)+
+  geom_line(data = ad1, aes(x = depth, y = age), colour = "red")
 
 ## should be comparing coverage of simulated "true" ages not the data points
 ## as data might have extra error added
@@ -161,7 +189,13 @@ AgeModCoverage <- function(hamstr_fit, dat){
   
 }
 
+plot(ham1, type = "mem")
+plot(ham2, type = "mem")
+plot(ham3, type = "mem")
+
+AgeModCoverage(ham1, ad1)
 AgeModCoverage(ham2, ad1)
+AgeModCoverage(ham3, ad1)
 
 AgeModCoverage(hb2, ad1)
 
