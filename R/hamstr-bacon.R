@@ -1,10 +1,13 @@
-#' Run Wrapped Bacon
-#'
+#' A Wrapper for rbacon::Bacon
+#' 
 #' @param depth 
 #' @param obs_age 
 #' @param obs_err 
 #' @param ... 
-#'
+#' @description Wraps the Bacon function from rbacon so that it can be used in a
+#' more typical "R" way. Returns age-depth models in a format to match hamstr 
+#' output. Not all Bacon functionality is accessible, for example there is no 
+#' hiatuses and boundaries.
 #' @inheritParams rbacon::Bacon
 #' @return
 #' @export
@@ -16,97 +19,108 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
                          acc.shape = 1.5, acc.mean = 20,
                          mem.strength = 4, mem.mean = 0.7,
                          plot.pdf = FALSE,
-                         ask = FALSE){
+                         ask = FALSE, suggest = FALSE){
   
-  
-  pars <- c(as.list(environment()))
-  
+  # use temp directory to store Bacon input and output
   tmpdir <- tempdir()
-  
-  #unlink(tmpdir, recursive = TRUE, force = TRUE)
   
   dirbase <- basename(tmpdir)
   dirnm <- dirname(tmpdir)
   
+  # create datafile in format required for Bacon
   datfl <- tempfile(tmpdir = tmpdir)
   
-   d <- dplyr::tibble(
+  bacon_dat <- dplyr::tibble(
       id = "test",
       age = obs_age,
       error = obs_err,
       depth = depth
     )
   
-  utils::write.csv(d, file = paste0(tmpdir, "\\", dirbase, ".csv"),
+  utils::write.csv(bacon_dat, file = paste0(tmpdir, "\\", dirbase, ".csv"),
               row.names = FALSE, quote = FALSE)
   
   
-  # call Bacon
   
+  # capture the passed arguments
+  pars <- c(as.list(environment()))
+  
+  # set name and location for output
   pars$core = dirbase
   pars$coredir = normalizePath(paste0(dirnm, "/"))
 
+  
   # subset of args for Bacon
   to.keep <- names(pars) %in% methods::formalArgs(Bacon2)
   pars <- pars[to.keep]
   
-  # get defaults
-  #default.args <- formals(rbacon::Bacon)
+  
+  # get defaults values of arguments to Bacon
   default.args <- formals(Bacon2)
   default.arg.nms <- names(default.args)
   
   # Overwrite the defaults with non-null passed arguments 
-  dpars <- pars
-  dpars <- dpars[lapply(dpars, is.null) == FALSE]
+  #dpars <- pars
+  non.null.pars <- pars[lapply(pars, is.null) == FALSE]
   
-  default.args[names(dpars)] <- dpars
+  merged.pars <- default.args
+  merged.pars[names(non.null.pars)] <- non.null.pars
   
-  dpars <- default.args
   
-  # set d.by to thick unless specified. We will do interpolation separately
+  
+  # set d.by to thick unless specified. We will do interpolation separately.
   if (is.na(d.by)){
-    pars$d.by <- dpars$thick
+    pars$d.by <- merged.pars$thick
   }
+  
+  
+  # Call Bacon
   
   #do.call(rbacon::Bacon, pars)
   do.call(Bacon2, pars)
-  #do.call(envibacon::Bacon2, pars)
   
+  # read the produced settings file 
   settings.file <- utils::read.csv(file = paste0(tmpdir, "\\", dirbase, "_settings.txt"), header = FALSE)[,1]
-  
-  settings.file <- settings.file %>% 
-    dplyr::as_tibble() %>% 
-    tidyr::separate(value, into = c("value", "par"), sep = "#") %>% 
-    dplyr::mutate(value = readr::parse_number(value)) %>% 
+
+  # create list of used parameters
+  settings.file <- settings.file %>%
+    dplyr::as_tibble() %>%
+    tidyr::separate(value, into = c("value", "par"), sep = "#") %>%
+    dplyr::mutate(value = readr::parse_number(value)) %>%
     dplyr::select(par, value)
-  
+
   par_list <- as.list(settings.file$value)
   names(par_list) <- settings.file$par
-  
+
   par_list$thick <- pars$thick
-  
+
   d.by <- par_list[["d.by"]]
   d.min <- par_list[["d.min"]]
   d.max <- par_list[["d.max"]]
 
-  
   # construct the file name
-  K = length(seq(floor(d.min), ceiling(d.max), by = dpars$thick))
- 
+  K = length(seq(floor(d.min), ceiling(d.max), by = merged.pars$thick))
+
   outflnm <- paste0(tmpdir, "\\", dirbase, "_", K, ".out")
 
+  # read the posterior
   posterior <- utils::read.table(outflnm, header = FALSE)
-  
-  #age_mods <- return_bacon_age_mods(outflnm, thick = dpars$thick, d.min = d.min)
 
-  out <- list(pars = par_list, posterior = posterior, data = d)
-  
+  # create output, add class attributes and return
+  out <- list(pars = par_list, posterior = posterior, data = bacon_dat)
   class(out) <- append("hamstr_bacon_fit", class(out))
-  
+
   return(out)
 }
 
 
+
+#' @param x 
+#'
+#' @return
+#' @keywords internal
+#'
+#' @examples
 .StackIterations <- function(x){
   x <- as.data.frame(x, stringsAsFactors = FALSE)
   n.row <- nrow(x)
@@ -201,7 +215,7 @@ interpolate_bacon_age_models <- function(hamstr_bacon_fit, new_depth){
   
   out$age <- unlist(new_pst_age)
   
-  out <- as_tibble(out) 
+  out <- dplyr::as_tibble(out) 
   out <- out[,c(2,1,3)]
   
   class(out) <- append("hamstr_bacon_interpolated_ages", class(out))
@@ -340,7 +354,7 @@ Bacon2 <- function (suppress.plots = TRUE,
                     after = 1e-04/thick, cc = 1, cc1 = "IntCal20", cc2 = "Marine20",
                     cc3 = "SHCal20", cc4 = "ConstCal", ccdir = "", postbomb = 0,
                     delta.R = 0, delta.STD = 0, t.a = 3, t.b = 4, normal = FALSE,
-                    suggest = TRUE, reswarn = c(10, 200), remember = TRUE, ask = FALSE,
+                    suggest = FALSE, reswarn = c(10, 200), remember = TRUE, ask = FALSE,
                     run = TRUE, defaults = "defaultBacon_settings.txt", sep = ",",
                     dec = ".", runname = "", slump = c(), BCAD = FALSE, ssize = 2000,
                     th0 = c(), burnin = min(500, ssize), MinAge = c(), MaxAge = c(),
@@ -608,8 +622,11 @@ Bacon2 <- function (suppress.plots = TRUE,
   if (close.connections)
     closeAllConnections()
   
-  # detach internal rbacon runctions
+  # detach internal rbacon functions
   detach("rbacon_all")
+  
+  # cleanup global
+  rm(info)
 }
 
 

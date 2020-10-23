@@ -6,7 +6,8 @@ MSB2K_cal <- hamstr::calibrate_14C_age(MSB2K, age.14C = "age", age.14C.se = "err
 ham1 <- hamstr(depth = MSB2K_cal$depth, obs_age = MSB2K_cal$age.14C.cal, obs_err = MSB2K_cal$age.14C.cal.se)
 
 
-hambac1 <- hamstr_bacon(depth = MSB2K$depth, obs_age = MSB2K$age, obs_err = MSB2K$error, thick = 3, d.min = 0)
+hambac1 <- hamstr_bacon(depth = MSB2K$depth, obs_age = MSB2K$age, obs_err = MSB2K$error, thick = 5, d.min = 0,
+                        acc.mean = 50, ask = FALSE)
 
 
 extract_hamstr_fit(ham1)

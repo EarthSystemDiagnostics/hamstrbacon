@@ -2,7 +2,7 @@
 % Please edit documentation in R/hamstr-bacon.R
 \name{hamstr_bacon}
 \alias{hamstr_bacon}
-\title{Run Wrapped Bacon}
+\title{A Wrapper for rbacon::Bacon}
 \usage{
 hamstr_bacon(
   depth,
@@ -12,7 +12,13 @@ hamstr_bacon(
   d.min = NA,
   d.max = NA,
   d.by = NA,
-  plot.pdf = FALSE
+  acc.shape = 1.5,
+  acc.mean = 20,
+  mem.strength = 4,
+  mem.mean = 0.7,
+  plot.pdf = FALSE,
+  ask = FALSE,
+  suggest = FALSE
 )
 }
 \arguments{
@@ -30,7 +36,27 @@ hamstr_bacon(
 
 \item{d.by}{Depth intervals at which ages are calculated. Defaults to \code{d.by=1}.}
 
+\item{acc.shape}{The prior for the accumulation rate consists of a gamma distribution with two parameters.
+Its shape is set by acc.shape (default \code{acc.shape=1.5}; higher values result in more peaked shapes).}
+
+\item{acc.mean}{The accumulation rate prior consists of a gamma distribution with two parameters. Its mean is set by acc.mean (default \code{acc.mean=20} yr/cm (or whatever age or depth units are chosen),
+which can be changed to, e.g., 5, 10 or 50 for different kinds of deposits). Multiple values can be given in case of hiatuses or boundaries, e.g., Bacon(hiatus.depths=23, acc.mean=c(5,20))}
+
+\item{mem.strength}{The prior for the memory (dependence of accumulation rate between neighbouring depths) is a beta distribution, which looks much like the gamma distribution.
+but its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.strength=4}
+(higher values result in more peaked shapes) allow for a large range of posterior memory values.}
+
+\item{mem.mean}{The prior for the memory is a beta distribution, which looks much like the gamma distribution but
+its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.mean=0.7}
+allow for a large range of posterior memory values.}
+
 \item{plot.pdf}{Produce a pdf file of the age-depth plot. Defaults to \code{plot.pdf=TRUE} after a Bacon run.}
+
+\item{ask}{By default Bacon will ask you to confirm that you want to run the core with the provided settings. Disable this using \code{ask=FALSE} (e.g., for batch runs).}
+
+\item{suggest}{If initial analysis of the data indicates abnormally slow or fast accumulation rates, Bacon will suggest to change the prior.
+Also, if the length of the core would cause too few or too many sections with the default settings, Bacon will suggest an alternative section thickness \code{thick}.
+Accept these suggested alternative settings by typing "y" (or "yes please" if you prefer to be polite), or leave as is by typing "n" (or anything else, really). To get rid of these suggestions, use \code{suggest=FALSE}.}
 
 \item{...}{}
 }
@@ -38,5 +64,8 @@ hamstr_bacon(
 
 }
 \description{
-Run Wrapped Bacon
+Wraps the Bacon function from rbacon so that it can be used in a
+more typical "R" way. Returns age-depth models in a format to match hamstr 
+output. Not all Bacon functionality is accessible, for example there is no 
+hiatuses and boundaries.
 }
