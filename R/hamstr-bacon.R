@@ -21,6 +21,7 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
                          plot.pdf = FALSE,
                          ask = FALSE, suggest = FALSE){
   
+ 
   # use temp directory to store Bacon input and output
   tmpdir <- tempdir()
   
@@ -79,35 +80,40 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
   #do.call(rbacon::Bacon, pars)
   do.call(Bacon2, pars)
   
+  par_list <- info[names(info) %in% names(pars)]
+  
   # read the produced settings file 
-  settings.file <- utils::read.csv(file = paste0(tmpdir, "\\", dirbase, "_settings.txt"), header = FALSE)[,1]
+  #settings.file <- utils::read.csv(file = paste0(tmpdir, "\\", dirbase, "_settings.txt"), header = FALSE)[,1]
 
   # create list of used parameters
-  settings.file <- settings.file %>%
-    dplyr::as_tibble() %>%
-    tidyr::separate(value, into = c("value", "par"), sep = "#") %>%
-    dplyr::mutate(value = readr::parse_number(value)) %>%
-    dplyr::select(par, value)
+  # settings.file <- settings.file %>%
+  #   dplyr::as_tibble() %>%
+  #   tidyr::separate(value, into = c("value", "par"), sep = "#") %>%
+  #   dplyr::mutate(value = readr::parse_number(value)) %>%
+  #   dplyr::select(par, value)
 
-  par_list <- as.list(settings.file$value)
-  names(par_list) <- settings.file$par
+  #par_list <- as.list(settings.file$value)
+  #names(par_list) <- settings.file$par
 
-  par_list$thick <- pars$thick
+  #par_list$thick <- info$thick
 
-  d.by <- par_list[["d.by"]]
-  d.min <- par_list[["d.min"]]
-  d.max <- par_list[["d.max"]]
+  #par_list$d.by <- info$d.by
+  #par_list$d.min <- info$d.min
+  #par_list$d.max <- info$d.max
 
   # construct the file name
-  K = length(seq(floor(d.min), ceiling(d.max), by = merged.pars$thick))
-
-  outflnm <- paste0(tmpdir, "\\", dirbase, "_", K, ".out")
+  #K = length(seq(floor(d.min), ceiling(d.max), by = merged.pars$thick))
+  #K <- info$K
+  
+  #outflnm <- paste0(tmpdir, "\\", dirbase, "_", K, ".out")
 
   # read the posterior
-  posterior <- utils::read.table(outflnm, header = FALSE)
+  #posterior <- utils::read.table(outflnm, header = FALSE)
 
+  posterior <- info$output
+  
   # create output, add class attributes and return
-  out <- list(pars = par_list, posterior = posterior, data = bacon_dat)
+  out <- list(pars = par_list, data = bacon_dat, posterior = posterior, info = info)
   class(out) <- append("hamstr_bacon_fit", class(out))
 
   return(out)
@@ -294,6 +300,27 @@ summarise_interpolated_bacon_age_models <- function(age_mods){
 }
 
 
+#' Title
+#'
+#' @param object a hamstr_bacon_fit object
+#' @return A ggplot object
+#'
+#' @examples
+#' @export
+#' @method plot hamstr_bacon_fit
+plot.hamstr_bacon_fit <- function(object,
+                            type = c("default"),
+                            summarise = TRUE,
+                            ...){
+  
+  type <- match.arg(type)
+  
+  switch(type,
+         default = plot_summary_bacon_age_models(object, ...)
+         )
+}
+
+
 
 plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
   
@@ -354,7 +381,7 @@ Bacon2 <- function (suppress.plots = TRUE,
                     after = 1e-04/thick, cc = 1, cc1 = "IntCal20", cc2 = "Marine20",
                     cc3 = "SHCal20", cc4 = "ConstCal", ccdir = "", postbomb = 0,
                     delta.R = 0, delta.STD = 0, t.a = 3, t.b = 4, normal = FALSE,
-                    suggest = FALSE, reswarn = c(10, 200), remember = TRUE, ask = FALSE,
+                    suggest = c("accept", FALSE, TRUE), reswarn = c(10, 200), remember = TRUE, ask = FALSE,
                     run = TRUE, defaults = "defaultBacon_settings.txt", sep = ",",
                     dec = ".", runname = "", slump = c(), BCAD = FALSE, ssize = 2000,
                     th0 = c(), burnin = min(500, ssize), MinAge = c(), MaxAge = c(),
@@ -362,6 +389,10 @@ Bacon2 <- function (suppress.plots = TRUE,
                     dark = 1, date.res = 100, age.res = 200, yr.res = age.res,
                     close.connections = TRUE, verbose = TRUE, ...)
 {
+  
+ 
+  suggest <- match.arg(as.character(suggest), 
+                       choices = c("accept", "FALSE", "TRUE"))
   
   # Temporarily attach all internal functions from package rbacon
   attach(loadNamespace("rbacon"), name = "rbacon_all")
@@ -394,7 +425,7 @@ Bacon2 <- function (suppress.plots = TRUE,
       else message(" Using several C-14 calibration curves\n")
     }
   }
-  if (suggest) {
+  if (suggest == "TRUE") {
     sugg <- sapply(c(1, 2, 5), function(x) x * 10^(-1:2))
     ballpacc <- lm(dets[, 2] * 1.1 ~ dets[, 4])$coefficients[2]
     ballpacc <- abs(sugg - ballpacc)
@@ -407,7 +438,17 @@ Bacon2 <- function (suppress.plots = TRUE,
         acc.mean <- sugg
       else message(" No problem, using the provided prior")
     }
-  }
+  } else if (suggest == "accept"){
+    sugg <- sapply(c(1, 2, 5), function(x) x * 10^(-1:2))
+    ballpacc <- lm(dets[, 2] * 1.1 ~ dets[, 4])$coefficients[2]
+    ballpacc <- abs(sugg - ballpacc)
+    ballpacc <- ballpacc[ballpacc > 0]
+    sugg <- sugg[order(ballpacc)[1]]
+    
+    message("Setting acc.mean to Ballpark estimate of ", sugg)
+    acc.mean <- sugg
+    
+    }
   if (!is.na(boundary[1]))
     boundary <- sort(unique(boundary))
   if (!is.na(hiatus.depths[1])) {
@@ -498,9 +539,10 @@ Bacon2 <- function (suppress.plots = TRUE,
              call. = FALSE)
     }
   }
+  
   ans <- "n"
-  if (suggest)
-    if (length(reswarn) == 2)
+  if (suggest == "TRUE"){
+    if (length(reswarn) == 2){
       if (info$K < min(reswarn)) {
         sugg <- pretty(thick * (info$K/min(reswarn)),
                        10)
@@ -516,11 +558,26 @@ Bacon2 <- function (suppress.plots = TRUE,
                             thick, ", will result in very many age-model sections (",
                             info$K, ", possibly hard to run). Suggested minimum value for thick: ",
                             sugg, " OK? (y/n) "))
+  }}}
+  if (suggest == "accept"){
+      if (length(reswarn) == 2)
+        if (info$K < min(reswarn)) {
+          sugg <- pretty(thick * (info$K/min(reswarn)),
+                         10)
+          sugg <- min(sugg[sugg > 0])
+          ans <- "y"
+        } else if (info$K > max(reswarn)) {
+      sugg <- max(pretty(thick * (info$K/max(reswarn))))
+      ans <- "y"
+    }
+   
   }
+  
   if (tolower(substr(ans, 1, 1)) == "y") {
-    cat(" OK, setting thick to ", sugg, "\n")
+    message(" OK, setting thick to ", sugg, "\n")
     thick <- sugg
     info$thick = thick
+    info$d.by = thick
     info$elbows <- seq(floor(info$d.min), ceiling(info$d.max),
                        by = thick)
     if (length(info$slump) > 0)
@@ -529,6 +586,10 @@ Bacon2 <- function (suppress.plots = TRUE,
     info$K <- length(info$elbows)
     info$cK <- info$d.min + (info$thick * info$K)
   }
+
+ 
+  
+  
   if (length(slump) > 0) {
     if (length(slump)%%2 == 1)
       stop("slumps need both upper and lower depths. Please check the manual",

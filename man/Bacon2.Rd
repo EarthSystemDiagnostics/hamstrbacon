@@ -41,7 +41,7 @@ Bacon2(
   t.a = 3,
   t.b = 4,
   normal = FALSE,
-  suggest = FALSE,
+  suggest = c("accept", FALSE, TRUE),
   reswarn = c(10, 200),
   remember = TRUE,
   ask = FALSE,
