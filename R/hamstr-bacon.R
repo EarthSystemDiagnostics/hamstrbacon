@@ -325,7 +325,7 @@ plot.hamstr_bacon_fit <- function(object,
 plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
   
  
-  age_summary <- hamstr::summarise_bacon_age_models(hamstr_bacon_fit)
+  age_summary <- summarise_bacon_age_models(hamstr_bacon_fit)
   
   obs_ages <- hamstr::calibrate_14C_age(hamstr_bacon_fit$data, age.14C = "age", age.14C.se = "error")
   
@@ -405,9 +405,8 @@ Bacon2 <- function (suppress.plots = TRUE,
                                   sep = ""), package = "rbacon")
     file.copy(fileCopy, coredir, recursive = TRUE, overwrite = FALSE)
   }
-  if (ccdir == "")
-    ccdir <- paste(system.file("extdata", package = "rbacon"),
-                   "/Curves/", sep = "")
+  if (ccdir == "") 
+    ccdir <- system.file("extdata", package = "IntCal")
   ccdir <- .validateDirectoryName(ccdir)
   defaults <- system.file("extdata", defaults, package = "rbacon")
   dets <- .read.dets(core, coredir, sep = sep, dec = dec,

@@ -1,5 +1,5 @@
 #devtools::install(quick = FALSE, dependencies = FALSE)
-
+# install.packages("../hamstr", repos = NULL, type = "source")
 library(hamstr)
 
 MSB2K_cal <- hamstr::calibrate_14C_age(MSB2K, age.14C = "age", age.14C.se = "error")
