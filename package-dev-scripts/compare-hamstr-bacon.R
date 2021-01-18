@@ -40,6 +40,10 @@ SimulateAgeDepth <- function(top, bottom, d_depth, gamma_shape, gamma_mean,
   data.frame(depth = depth, age = age, acc.rates_yr_cm = c(acc.rates_yr_cm, NA))
 }
 
+
+
+library(tidyverse)
+
 tmp <- SimulateAgeDepth(100, 700, 1, 1.5, c(rep(10, 200), rep(50, 200), rep(10, 200)), 0.7) %>% 
   tbl_df()
 
@@ -264,4 +268,80 @@ covr %>%
   group_by(method) %>% 
   summarise(across(everything(), mean))
 
+
+######
+
+
+# Simulated with power law spec
+
+set.seed(1)
+ar.mod <- arima0(PaleoSpec::SimPowerlaw(1.5, 1e05), order = c(10,0,0))
+ar.cfs <- head(ar.mod$coef, -1)
+ar.cfs
+
+
+ad1 <- SimulateAgeDepth(top = 0, bottom = 10000, d_depth = 1, gamma_shape = 3, gamma_mean = 50, ar1 = ar.cfs)
+
+#plot(acc.rates_yr_cm~depth, type = "l", data = ad1, ylim = c(0, max(ad1$acc.rates_yr_cm, na.rm = T)))
+
+plot(age~depth, type = "l", data = ad1, ylim = c(0, max(ad1$age, na.rm = T)))
+abline(0, 50, col = "red")
+
+rbacon::Bacon
+
+library(tidyverse)
+exp <- tibble(r = 1:10) %>% 
+  group_by(r) %>% 
+  do({
+    SimulateAgeDepth(top = 0, bottom = 500, d_depth = 1,
+                     gamma_shape = 3, gamma_mean = 50,
+                     ar1 = 0.7)
+  })
+
+exp %>% 
+  ggplot(aes(x = depth, y = age, group = r)) +
+  geom_line(alpha = 0.25) +
+  geom_abline(intercept = 0, slope = 50, colour = "red", lwd = 2) +
+  theme_bw()
+
+
+
+
+
+## simulated with big gap
+library(hamstr)
+
+sim.dat <- SimulateAgeDepth(top = 0, bottom = 500, d_depth = 1,
+                            gamma_shape = 1.5, gamma_mean = 50,
+                            ar1 = 0.7) %>% 
+  as_tibble() %>% 
+  mutate(sigma.age = 30 + age * 0.025,
+         rad.age = Bchron::unCalibrate(age, type = "ages"))
+
+obs.dat <- sim.dat %>% 
+  filter(depth %in% c(seq(20, 200, by = 20), seq(350, 500, by = 50))) 
+
+sim.dat %>% 
+  ggplot(aes(x = depth, y = age)) +
+  geom_line(aes(colour = "cal.age")) +
+  geom_line(aes(y = rad.age, colour = "rad.age"))
+
+
+h1 <- hamstr(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
+             K = c(10, 10), mem_mean = 0.9,
+             cores = 3)
+
+b1 <- hamstr_bacon(depth = obs.dat$depth, obs_age = obs.dat$rad.age, obs_err = obs.dat$sigma.age,
+                   thick = 1, acc.mean = 50)
+
+plot(h1, type = "age_models") +
+  geom_line(data = sim.dat, aes(x = depth, y = age, colour = "Simulated"))
+
+
+plot(b1) +
+  geom_line(data = sim.dat, aes(x = depth, y = age, colour = "Simulated"))
+
+
+
+h1$data
 
