@@ -1,6 +1,7 @@
 #devtools::install(quick = FALSE, dependencies = FALSE)
 # install.packages("../hamstr", repos = NULL, type = "source")
 library(hamstr)
+library(tidyverse)
 
 MSB2K_cal <- hamstr::calibrate_14C_age(MSB2K, age.14C = "age", age.14C.se = "error")
 ham1 <- hamstr(depth = MSB2K_cal$depth, obs_age = MSB2K_cal$age.14C.cal, obs_err = MSB2K_cal$age.14C.cal.se)
@@ -42,7 +43,6 @@ SimulateAgeDepth <- function(top, bottom, d_depth, gamma_shape, gamma_mean,
 
 
 
-library(tidyverse)
 
 tmp <- SimulateAgeDepth(100, 700, 1, 1.5, c(rep(10, 200), rep(50, 200), rep(10, 200)), 0.7) %>% 
   tbl_df()
