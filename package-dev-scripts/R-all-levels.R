@@ -163,6 +163,9 @@ sd2 <- make_stan_dat_hamstr_dev(depth = obs.dat$depth, obs_age = obs.dat$age, ob
                          cores = 3)
 
 
+sd3 <- make_stan_dat_hamstr_dev(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
+                         K = c(480), mem_mean = 0.7, mem_strength = 4,
+                         cores = 3)
 
 
 ### attempt to compile hierarchical model with AR1 at all levels
@@ -184,9 +187,9 @@ hd0b3 <- hamstr_bacon(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = ob
                       thick = 1)
 
 
-hd2 <- stan(file = "package-dev-scripts/stan-models/hamstr_R_all.stan", data = sd2, cores = 3, chains = 3)
+hd2 <- stan(file = "package-dev-scripts/stan-models/hamstr_R_all.stan", data = sd3, cores = 3, chains = 3)
 
-hd2 <- list(fit=hd2, data=sd2)
+hd2 <- list(fit=hd2, data=sd3)
 
 class(hd2) <- append("hamstr_fit", class(hd2))
 
