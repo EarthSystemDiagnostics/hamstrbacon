@@ -3,3 +3,6 @@
 ^\.travis\.yml$
 ^readme_cache$
 ^package-dev-scripts$
+^Bacon_runs$
+^Docker$
+
