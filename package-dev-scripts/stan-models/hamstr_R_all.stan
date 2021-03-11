@@ -83,7 +83,7 @@ transformed data{
 parameters {
   
   // decorrelation scale of continuous time process
-  real<lower = 0> a;
+  real<lower=0> a;
   
   // the hierarchical gamma innovations in one long vector that will be indexed
   vector<lower = 0>[K_tot] alpha;
@@ -101,6 +101,7 @@ parameters {
 }
 transformed parameters{
   
+ 
   // AR1 coeffiecient at 1 depth unit
   real<lower = 0, upper = 1> R;
   
@@ -123,6 +124,7 @@ transformed parameters{
   
   // AR1 coefficient at 1 depth unit
   R = (exp(2*a)-2*exp(a)+1)/((2*a-2)*exp(2*a)+2*exp(a));
+      
   
   // AR1 coeffiecient at modelled thicknesses
   for (i in 1:K_lvls){

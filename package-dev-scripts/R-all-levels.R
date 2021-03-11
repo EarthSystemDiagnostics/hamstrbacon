@@ -1,3 +1,33 @@
+library(rstan)
+library(hamstr)
+library(tidyverse)
+
+SimulateAgeDepth <- function(top, bottom, d_depth, gamma_shape, gamma_mean,
+                             ar1){
+  
+  depth <- seq(top, bottom, by = d_depth)
+  
+  n <- length(depth)
+  
+  gamma_scale = gamma_mean / gamma_shape
+  
+  y <- as.numeric(arima.sim(model = list(ar = ar1^d_depth), n-1))
+  y <- y / sd(y)
+  y <- y - mean(y)
+  sd_y <- sd(y)
+  
+  py <- (pnorm(y, mean = 0, sd = sd_y))
+  
+  # translate to gamma
+  acc.rates_yr_cm <- qgamma(py, shape = gamma_shape, scale = gamma_scale)
+  
+  min.age <- gamma_mean[1] * top
+  
+  age <- cumsum(c(min.age, acc.rates_yr_cm) * d_depth)
+  
+  data.frame(depth = depth, age = age, acc.rates_yr_cm = c(acc.rates_yr_cm, NA))
+}
+
 #' Make the data object required by the Stan program
 #'
 #' @inheritParams hamstr
@@ -151,6 +181,28 @@ alpha_indices_dev <- function(K){
   list(alpha_idx=alpha_idx, lvl=lvl, lvl_SE=lvl_SE, finest_idx=finest_idx, parent=parent, nK = nK[-1], K_lvls=K_lvls)
 }
 
+sim.dat <- SimulateAgeDepth(top = 0, bottom = 500, d_depth = 1,
+                            gamma_shape = 1.5, gamma_mean = 50,
+                            ar1 = 0.7) %>% 
+  as_tibble() %>% 
+  mutate(sigma.age = 30 + age * 0.025,
+         rad.age = Bchron::unCalibrate(age, type = "ages"))
+
+acf(diff(sim.dat$age), plot = FALSE)[1]
+acf(diff(sim.dat$rad.age), plot = FALSE)[1]
+
+
+
+obs.dat <- sim.dat %>% 
+  filter(depth %in% c(seq(20, 200, by = 20), seq(350, 500, by = 50))) 
+
+acf(diff(obs.dat$rad.age), plot = FALSE)[1]
+
+sim.dat %>% 
+  ggplot(aes(x = depth, y = age)) +
+  geom_line(aes(colour = "cal.age")) +
+  geom_line(aes(y = rad.age, colour = "rad.age")) +
+  geom_point(data = obs.dat)
 
 
 sd1 <- make_stan_dat_hamstr(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
@@ -158,9 +210,21 @@ sd1 <- make_stan_dat_hamstr(depth = obs.dat$depth, obs_age = obs.dat$age, obs_er
                          cores = 3)
 
 
-sd2 <- make_stan_dat_hamstr_dev(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
-                         K = c(10, 10, 5), mem_mean = 0.7, mem_strength = 4,
+sd1010 <- make_stan_dat_hamstr_dev(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
+                         K = c(10, 10), mem_mean = 0.5, mem_strength = 4,
                          cores = 3)
+
+sd96_5 <- make_stan_dat_hamstr_dev(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
+                                   K = c(96, 5), mem_mean = 0.2, mem_strength = 4,
+                                   cores = 3)
+
+sd_7_7_7 <- make_stan_dat_hamstr_dev(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
+                                   K = c(7, 7, 7), mem_mean = 0.2, mem_strength = 4,
+                                   cores = 3)
+
+sd2 <- make_stan_dat_hamstr_dev(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
+                                K = c(10, 10, 5), mem_mean = 0.7, mem_strength = 4,
+                                cores = 3)
 
 
 sd3 <- make_stan_dat_hamstr_dev(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
@@ -171,33 +235,92 @@ sd3 <- make_stan_dat_hamstr_dev(depth = obs.dat$depth, obs_age = obs.dat$age, ob
 ### attempt to compile hierarchical model with AR1 at all levels
 
 hd0 <- hamstr(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
-                         K = c(10, 10), mem_mean = 0.7, mem_strength = 4,
+                         K = c(100), mem_mean = 0.7, mem_strength = 4,
                          cores = 3)
 
-hd0b <- hamstr_bacon(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
+ham1010 <- hamstr(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
+              K = c(10, 10), mem_mean = 0.5, mem_strength = 4,
+              cores = 3)
+
+ham_7_7_7 <- hamstr(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
+                  K = c(7,7,7), mem_mean = 0.5, mem_strength = 4,
+                  cores = 3)
+
+
+hd0b <- hamstr_bacon(depth = obs.dat$depth, obs_age = obs.dat$rad.age, obs_err = obs.dat$sigma.age,
                      mem.strength = 4, mem.mean = 0.7, acc.mean = 50,
                      thick = 4.8)
 
-hd0b2 <- hamstr_bacon(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
+hd0b2 <- hamstr_bacon(depth = obs.dat$depth, obs_age = obs.dat$rad.age, obs_err = obs.dat$sigma.age,
                      mem.strength = 4, mem.mean = 0.7, acc.mean = 50,
                      thick = 48)
 
-hd0b3 <- hamstr_bacon(depth = obs.dat$depth, obs_age = obs.dat$age, obs_err = obs.dat$sigma.age,
-                      mem.strength = 4, mem.mean = 0.7, acc.mean = 50,
-                      thick = 1)
+#hd0b3 <- hamstr_bacon(depth = obs.dat$depth, obs_age = obs.dat$rad.age, obs_err = obs.dat$sigma.age,
+    #                  mem.strength = 4, mem.mean = 0.7, acc.mean = 50,
+       #               thick = 1)
 
 
-hd2 <- stan(file = "package-dev-scripts/stan-models/hamstr_R_all.stan", data = sd3, cores = 3, chains = 3)
+hall_10_10 <- stan(file = "package-dev-scripts/stan-models/hamstr_R_all.stan", data = sd1010, cores = 3, chains = 3)
 
-hd2 <- list(fit=hd2, data=sd3)
+hall_10_10 <- list(fit=hall_10_10, data=sd1010)
 
-class(hd2) <- append("hamstr_fit", class(hd2))
+class(hall_10_10) <- append("hamstr_fit", class(hall_10_10))
+
+#hall1010$fit <- hall1010$fit$fit
+
+plot(hall_10_10, type = "age_models", summarise = T) + 
+  lims(x = c(0, 500), y = c(0, 30000)) +
+  geom_line(data = sim.dat, inherit.aes = FALSE, aes(x = depth, y = age))
+
+plot(hall96_5, type = "age_models", summarise = F) + 
+  lims(x = c(0, 500), y = c(0, 30000)) +
+  geom_line(data = sim.dat, inherit.aes = FALSE, aes(x = depth, y = age))
 
 
-s1 <- as_tibble(summary(hd2$fit)$summary, rownames = "parameter")
-hist(s1$Rhat)
+plot(ham1010)
+
+hamstr:::plot_memory_prior_posterior(ham1010)
+hamstr:::plot_memory_prior_posterior(hall_10_10)
+
+w <- rstan::extract(hall_10_10$fit, "w")$w
+hist(w[,3])
+
+a <- rstan::extract(hall_10_10$fit, "a")$a
+hist((a))
 
 
+plot(ham_7_7_7, type = "age_models")+ 
+  lims(x = c(0, 500), y = c(0, 30000)) +
+  geom_line(data = sim.dat, inherit.aes = FALSE, aes(x = depth, y = age))
+
+plot(hall_10_10, type = "age_models", summarise= T)+ 
+  lims(x = c(0, 500), y = c(0, 30000)) +
+  geom_line(data = sim.dat, inherit.aes = FALSE, aes(x = depth, y = age))
+
+
+plot(ham1010, type = "age_models")+ 
+  lims(x = c(0, 500), y = c(0, 30000)) +
+  geom_line(data = sim.dat, inherit.aes = FALSE, aes(x = depth, y = age))
+
+
+plot(ham96_5, type = "age_models")+ 
+  lims(x = c(0, 500), y = c(0, 30000)) +
+  geom_line(data = sim.dat, inherit.aes = FALSE, aes(x = depth, y = age))
+
+
+plot(hd0, type = "age_models")+ lims(x = c(0, 500), y = c(0, 30000))+
+  geom_line(data = sim.dat, inherit.aes = FALSE, aes(x = depth, y = age))
+
+plot(hd0b)+ lims(x = c(0, 500), y = c(0, 30000))+
+  geom_line(data = sim.dat, inherit.aes = FALSE, aes(x = depth, y = age))
+
+plot(hd0b2) + lims(x = c(0, 500), y = c(0, 30000))+
+  geom_line(data = sim.dat, inherit.aes = FALSE, aes(x = depth, y = age))
+
+
+
+
+plot(hd0)
 plot(hd0b)
 plot(hd0b2)
 plot(hd0b3)
@@ -207,11 +330,27 @@ plot(hd2, type = "age_models")
 
 plot(hd2)
 
+traceplot(hall_10_10$fit, par = "a")
 
-s1 %>% 
+s_hall <- as_tibble(summary(hall_10_10$fit)$summary, rownames = "parameter")
+hist(s_hall$Rhat)
+
+s_hall %>% 
   filter(parameter %in% c("a", "R", "acc_mean"))
 
-s1 %>% 
+s_hall %>% 
+  filter(grepl("w", parameter))
+
+
+
+
+s_ham <- as_tibble(summary(ham1010$fit)$summary, rownames = "parameter")
+hist(s_ham$Rhat)
+
+s_ham %>% 
+  filter(parameter %in% c("a", "R", "acc_mean"))
+
+s_ham %>% 
   filter(grepl("w", parameter))
 
 
