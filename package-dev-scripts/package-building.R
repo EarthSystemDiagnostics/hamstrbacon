@@ -8,7 +8,7 @@
 
 
 # using ../rstanlm because already inside the rstanlm directory
-install.packages("../hamstr", repos = NULL, type = "source")
+install.packages("../hamstr", repos = NULL, type = "source", INSTALL_opts = "--no-multiarch")
 
 
 remotes::install_github("earthsystemdiagnostics/hamstr", args = "--preclean", build_vignettes = FALSE)
