@@ -308,19 +308,69 @@ summarise_interpolated_bacon_age_models <- function(age_mods){
 #' @examples
 #' @export
 #' @method plot hamstr_bacon_fit
-plot.hamstr_bacon_fit <- function(object,
-                            type = c("default"),
-                            summarise = TRUE,
-                            ...){
+plot.hamstr_bacon_fit <- function(hamstr_bacon_fit,
+                                  type = "default",
+                                  summarise = TRUE,
+                                  ...){
   
   type <- match.arg(type)
   
   switch(type,
-         default = plot_summary_bacon_age_models(object, ...)
+         default = plot_hamstr_bacon_fit(hamstr_bacon_fit,
+                                         summarise = summarise, ...),
          )
 }
 
 
+plot_hamstr_bacon_fit <- function(hamstr_bacon_fit, summarise = TRUE, n.iter = 1000) {
+  
+  if (summarise == TRUE){
+    p.fit <- plot_summary_bacon_age_models(hamstr_bacon_fit)
+  } else if (summarise == FALSE){
+    p.fit <- plot_bacon_age_models(hamstr_bacon_fit, n.iter = n.iter)
+  }
+  return(p.fit)
+}
+
+
+plot_bacon_age_models <- function(hamstr_bacon_fit, n.iter = 1000){
+  
+  obs_ages <- hamstr_bacon_fit$info$dets 
+  
+  obs_ages <- hamstr::calibrate_14C_age(obs_ages, age.14C = "age", age.14C.se = "error")
+  
+  obs_ages <- obs_ages %>%
+    dplyr::select(-age, -error) %>% 
+    dplyr::rename(.,
+                  age = age.14C.cal,
+                  err  = age.14C.cal.se) %>% 
+    dplyr::mutate(age_upr = age + 2*err,
+                  age_lwr = age - 2*err)
+  
+  
+  posterior_ages <- hamstr::return_bacon_age_mods(hamstr_bacon_fit)
+  
+  p.fit <- posterior_ages %>%
+    dplyr::filter(iter %in% sample(unique(iter), n.iter, replace = FALSE)) %>%
+    ggplot2::ggplot(ggplot2::aes(x = depth, y = age, group = iter))
+  
+  
+  p.fit <- p.fit +
+    ggplot2::geom_line(alpha = 0.5 / sqrt(n.iter))
+  
+  p.fit <- p.fit +
+    ggplot2::geom_linerange(data = obs_ages,
+                            ggplot2::aes(x = depth, 
+                                         ymax = age_upr, ymin = age_lwr), inherit.aes = FALSE,
+                            colour = "Blue", size = 1.25) +
+    ggplot2::geom_point(data = obs_ages, ggplot2::aes(x = depth, y = age), inherit.aes = FALSE,
+                        colour = "Blue") +
+    ggplot2::theme_bw() +
+    ggplot2::theme(panel.grid = ggplot2::element_blank()) +
+    ggplot2::labs(x = "Depth", y = "Age")
+  
+  p.fit
+}
 
 plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
   

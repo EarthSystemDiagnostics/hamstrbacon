@@ -75,7 +75,7 @@ calibrate_14C_age <- function(dat, age.14C = "age.14C",
   # Use mean and sd of empirical PDFs as point estimates of calendar ages
   dat$age.14C.cal <- sapply(cal.ages, function(x){
     if (is.na(x) == FALSE)
-    {SummariseEmpiricalPDF(x[[1]]$ageGrid, x[[1]]$densities)["mean"]} else {NA}
+    {SummariseEmpiricalPDF(x[[1]]$ageGrid, x[[1]]$densities)["median"]} else {NA}
   })
 
   dat$age.14C.cal.se <- sapply(cal.ages, function(x){
