@@ -164,7 +164,7 @@ interpolate_age_models <- function(hamstr_fit, new_depth = NULL){
   
   out$age <- unlist(new_pst_age)
   
-  out <- as_tibble(out) 
+  out <- dplyr::as_tibble(out) 
   out <- out[,c(2,1,3)]
   
   class(out) <- append("hamstr_interpolated_ages", class(out))

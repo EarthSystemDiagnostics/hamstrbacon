@@ -91,9 +91,9 @@ AgeModCoverage <- function(hamstr_fit, dat){
 
 ### Compare hamstr and Bacon
 
-CompareHamBac <- function(top, bottom, d_depth, gamma_shape, gamma_mean, ar_coefs,
-                          sampling_interval, K_hamstr, K_bacon){
-  
+CompareHamBac <- function(top, bottom, d_depth, gamma_shape, gamma_mean, ar_coefs, acc_mean = mean(gamma_mean),
+                          sampling_interval, sample_gap = NULL, K_hamstr, K_bacon){
+  #browser()
   ad1 <- SimulateAgeDepth(top = top, bottom = bottom, d_depth = d_depth,
                           gamma_shape = gamma_shape, gamma_mean = gamma_mean,
                           ar1 = ar_coefs) %>% 
@@ -109,6 +109,11 @@ CompareHamBac <- function(top, bottom, d_depth, gamma_shape, gamma_mean, ar_coef
   ad1_samp <- ad1 %>% 
     filter(sampled)
   
+  if (is.null(sample_gap) == FALSE){
+    ad1_samp <- ad1_samp %>% 
+      filter(depth < sample_gap[1] | depth > sample_gap[2])
+  }
+  
   ad1_samp <- calibrate_14C_age(ad1_samp, "rad_age_hat", "rad_age_sigma")
   
   
@@ -120,7 +125,7 @@ CompareHamBac <- function(top, bottom, d_depth, gamma_shape, gamma_mean, ar_coef
  
   bac1 <- hamstr_bacon(depth = ad1_samp$depth, obs_age = ad1_samp$rad_age_hat,
                        obs_err = ad1_samp$rad_age_sigma,
-                       acc.mean = 30, acc.shape = 1.5,
+                       acc.mean = acc_mean, acc.shape = 1.5,
                        d.min = min(ad1$depth), d.max = max(ad1$depth),
                        thick = diff(range(ad1$depth)) / K_bacon,
                        suggest = "FALSE")
@@ -129,26 +134,6 @@ CompareHamBac <- function(top, bottom, d_depth, gamma_shape, gamma_mean, ar_coef
     sim_core = ad1, hamstr = ham1, bacon = bac1
   ))
 }
-
-# hbc1 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
-#               sampling_interval = 12)
-# 
-# hbc2 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
-#                       sampling_interval = 1)
-
-hbc3 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
-                      sampling_interval = 12, K_hamstr = hamstr:::optimal_K(300, 10), K_bacon = 100)
-
-
-hbc4 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
-                      sampling_interval = 12, K_hamstr = hamstr:::optimal_K(300, 10), K_bacon = 300)
-
-hbc5 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
-                      sampling_interval = 12, K_hamstr = hamstr:::optimal_K(100, 10), K_bacon = 100)
-
-
-hbc6 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
-                      sampling_interval = 24, K_hamstr = hamstr:::optimal_K(100, 10), K_bacon = 100)
 
 
 GetCoverages <- function(sim){
@@ -178,25 +163,28 @@ PlotHamstrBacon <- function(sim){
   hamstr_age_summary <- hamstr:::summarise_age_models(sim$hamstr)
   
   alpha.lvl <- 0.5
-  pal <- c("HAMStR" = "Blue", "Bacon" = "Red", "Simulated" = "Yellow")
- 
+  #pal <- c("Hamstr" = "Blue", "Bacon" = "Red", "Simulated" = "Yellow")
+  pal <- c("Hamstr" = "#7570b3", "Bacon" = "#e7298a", "Simulated" = "green")
+  
   p.age.sum <- bacon_age_summary %>% 
     ggplot2::ggplot(ggplot2::aes(x = depth, y = mean)) +
-    ggplot2::geom_ribbon(ggplot2::aes(ymax = `2.5%`, ymin = `97.5%`, fill = "Bacon"), alpha = alpha.lvl/2) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymax = `2.5%`, ymin = `97.5%`, fill = "Bacon"), alpha = alpha.lvl/1.5) +
     ggplot2::geom_ribbon(ggplot2::aes(ymax = `75%`, ymin = `25%`, fill = "Bacon"), alpha = alpha.lvl) +
     #ggplot2::geom_line() +
-    ggplot2::geom_line(ggplot2::aes(y = `50%`, colour = "Bacon")) +
-    ggplot2::labs(x = "Depth", y = "Age") +
-    ggplot2::theme_bw() +
-    ggplot2::theme(panel.grid = ggplot2::element_blank())
+    ggplot2::geom_line(ggplot2::aes(y = `50%`, colour = "Bacon"), lwd = 1) +
+    ggplot2::labs(x = "Depth", y = "Age") #+
+    #ggplot2::theme(legend.key = element_rect(fill  = "grey40", colour = "grey40"))#+
+    #ggplot2::theme_bw()# +
+    #ggplot2::theme(panel.grid = ggplot2::element_blank()) +
+  
   
   p.age.sum <- p.age.sum + 
     ggplot2::geom_ribbon(data = hamstr_age_summary,
-                         ggplot2::aes(ymax = `2.5%`, ymin = `97.5%`, fill = "HAMStR"), alpha = alpha.lvl/2) +
+                         ggplot2::aes(ymax = `2.5%`, ymin = `97.5%`, fill = "Hamstr"), alpha = alpha.lvl/1.5) +
     ggplot2::geom_ribbon(data = hamstr_age_summary,
-                         ggplot2::aes(ymax = `75%`, ymin = `25%`, fill = "HAMStR"), alpha = alpha.lvl) +
+                         ggplot2::aes(ymax = `75%`, ymin = `25%`, fill = "Hamstr"), alpha = alpha.lvl) +
     #ggplot2::geom_line(data = hamstr_age_summary ) +
-    ggplot2::geom_line(data = hamstr_age_summary, ggplot2::aes(y = `50%`, colour = "HAMStR")) 
+    ggplot2::geom_line(data = hamstr_age_summary, ggplot2::aes(y = `50%`, colour = "Hamstr"), lwd = 1) 
   
   p.age.sum <- p.age.sum +
    ggplot2::geom_linerange(data = obs_ages,
@@ -205,6 +193,8 @@ PlotHamstrBacon <- function(sim){
                            colour = "green") +
    ggplot2::geom_point(data = obs_ages, ggplot2::aes(y = age),
                        colour = "green") +
+    geom_line(data = sim$sim_core, aes(x = depth, y = age, colour = "Simulated"), lwd = 1)+
+  
     scale_fill_manual("", values = pal) +
     scale_color_manual("", values = pal)
   
@@ -212,6 +202,58 @@ PlotHamstrBacon <- function(sim){
   p.age.sum
 
 }
+
+CompareMedAgeMod <- function(sim){
+  
+  hamstr = join_mod_dat(sim$hamstr, sim$sim_core)
+  bacon = join_mod_dat(sim$bacon, sim$sim_core)
+  
+  hb <- bind_rows(hamstr=hamstr, bacon=bacon, .id = "method") %>% 
+    mutate(error = `50%` - age)
+  
+  p <- hb %>% 
+    ggplot(aes(x = depth, y = `50%` - age, colour = method)) +
+    geom_line() +
+    geom_hline(yintercept = 0)
+  
+  return(list(data = hb, plot = p))
+  
+}
+
+
+## Simulations ------
+
+# hbc1 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
+#               sampling_interval = 12)
+# 
+# hbc2 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
+#                       sampling_interval = 1)
+
+hbc3 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 40, ar_coefs = 0.7,
+                      sampling_interval = 12,
+                      sample_gap = c(201, 349),
+                      K_hamstr = hamstr:::optimal_K(100, 10), K_bacon = 100)
+
+hbc4 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5,
+                      gamma_mean =  c(rep(20, 150), rep(90, 150)),
+                      ar_coefs = 0.7,
+                      sampling_interval = 24,
+                      sample_gap = c(225, 300),
+                      K_hamstr = hamstr:::optimal_K(100, 10),
+                      K_bacon = 100)
+
+# SimulateAgeDepth(100, 400, 1, gamma_shape = 1.5,
+#                  gamma_mean = c(rep(20, 100), rep(50, 100), rep(20, 100)),
+#                  #gamma_mean = 20,
+#                  ar1  = 0.7)
+
+
+hbc5 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
+                      sampling_interval = 12, K_hamstr = hamstr:::optimal_K(100, 10), K_bacon = 100)
+
+
+hbc6 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
+                      sampling_interval = 24, K_hamstr = hamstr:::optimal_K(100, 10), K_bacon = 100)
 
 
 
@@ -233,6 +275,10 @@ PlotHamstrBacon(hbc3)
 PlotHamstrBacon(hbc4)
 PlotHamstrBacon(hbc5)
 PlotHamstrBacon(hbc6)
+
+CompareMedAgeMod(hbc4)
+
+
 
 comps <- list(hbc1, hbc2, hbc3, hbc4, hbc5, hbc6)
 
@@ -320,42 +366,6 @@ covr %>%
   summarise(across(everything(), mean))
 
 
-######
-
-
-# Simulated with power law spec
-
-set.seed(1)
-ar.mod <- arima0(PaleoSpec::SimPowerlaw(1.5, 1e05), order = c(10,0,0))
-ar.cfs <- head(ar.mod$coef, -1)
-ar.cfs
-
-
-ad1 <- SimulateAgeDepth(top = 0, bottom = 10000, d_depth = 1, gamma_shape = 3, gamma_mean = 50, ar1 = ar.cfs)
-
-#plot(acc.rates_yr_cm~depth, type = "l", data = ad1, ylim = c(0, max(ad1$acc.rates_yr_cm, na.rm = T)))
-
-plot(age~depth, type = "l", data = ad1, ylim = c(0, max(ad1$age, na.rm = T)))
-abline(0, 50, col = "red")
-
-rbacon::Bacon
-
-library(tidyverse)
-exp <- tibble(r = 1:10) %>% 
-  group_by(r) %>% 
-  do({
-    SimulateAgeDepth(top = 0, bottom = 500, d_depth = 1,
-                     gamma_shape = 3, gamma_mean = 50,
-                     ar1 = 0.7)
-  })
-
-exp %>% 
-  ggplot(aes(x = depth, y = age, group = r)) +
-  geom_line(alpha = 0.25) +
-  geom_abline(intercept = 0, slope = 50, colour = "red", lwd = 2) +
-  theme_bw()
-
-
 
 
 
@@ -363,7 +373,7 @@ exp %>%
 library(hamstr)
 
 sim.dat <- SimulateAgeDepth(top = 0, bottom = 500, d_depth = 1,
-                            gamma_shape = 1.5, gamma_mean = 50,
+                            gamma_shape = 1, gamma_mean = c(rep(20, 100), rep(50, 200), rep(20, 200)),
                             ar1 = 0.7) %>% 
   as_tibble() %>% 
   mutate(sigma.age = 30 + age * 0.025,
@@ -390,8 +400,6 @@ b1 <- hamstr_bacon(depth = obs.dat$depth, obs_age = obs.dat$rad.age, obs_err = o
 
 plot(b1, summarise = F, n.iter = 10)
 
-library(rbacon)
-plot(b1)
 
 sim <- list("bacon" = b1, "hamstr" = h1, "sim_core" = sim.dat)
 
@@ -412,17 +420,19 @@ get_bacon_memory <- function(hamstr_bacon_fit){
   R <- w^(1/thick)
   
   dplyr::tibble(iter = 1:nrow(b1$posterior),
-             R = R, w = w)
+                R = R, w = w)
+  
+}
 
-  }
-
-get_bacon_memory(b1) %>% 
+get_bacon_memory(hbc3$bacon) %>% 
   pivot_longer(cols = c("R", "w")) %>% 
   ggplot(aes(x = value, fill = name)) +
     geom_density() +
   scale_x_continuous(limits = c(0, 1))
 
 plot_memory_prior_posterior(h1)
+
+plot(hbc4$hamstr)
 
 
 CompareMedAgeMod <- function(sim){
@@ -442,12 +452,12 @@ CompareMedAgeMod <- function(sim){
   
 }
 
-err <- CompareMedAgeMod(sim)
+err <- CompareMedAgeMod(hbc4)
 
 err$plot
 
 err$data %>% 
-  ggplot(aes(x = depth, y = (`50%` - age), colour = method)) +
+  ggplot(aes(x = depth, y = abs(`50%` - age), colour = method)) +
   geom_line() +
   geom_hline(yintercept = 0)
 
@@ -462,3 +472,54 @@ err$data %>%
   filter(complete.cases(mean)) %>% 
   group_by(method) %>% 
   summarise(n = n())
+
+
+
+
+
+PlotHamList <- function(mod.list){
+  
+  obs_ages <- mod.list[[1]]$data[c("depth", "obs_age", "obs_err")]
+  
+  obs_ages <- dplyr::as_tibble(obs_ages)
+  
+  obs_ages <- obs_ages %>%
+    dplyr::rename(.,
+                  age = obs_age,
+                  err  = obs_err) %>% 
+    dplyr::mutate(age_upr = age + 2*err,
+                  age_lwr = age - 2*err)
+  
+  
+  s <- lapply(mod.list, function(x) {
+    summary(x)
+  })
+  
+  s <- bind_rows(s, .id = "model")
+  
+  alpha.lvl <- 0.5
+  
+  
+  p.age.sum <- s %>%
+    ggplot2::ggplot(ggplot2::aes(x = depth, y = mean)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymax = `2.5%`, ymin = `97.5%`, fill = model), alpha = alpha.lvl/1.5) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymax = `75%`, ymin = `25%`, fill = model), alpha = alpha.lvl) +
+    ggplot2::geom_line(ggplot2::aes(y = `50%`, colour = model), lwd = 1) +
+    ggplot2::labs(x = "Depth", y = "Age") +
+    theme_bw()
+  
+  
+  p.age.sum <- p.age.sum +
+    ggplot2::geom_linerange(data = obs_ages,
+                            ggplot2::aes(x = depth,
+                                         ymax = age_upr, ymin = age_lwr), inherit.aes = FALSE,
+                            colour = "black") +
+    ggplot2::geom_point(data = obs_ages, ggplot2::aes(y = age),
+                        colour = "black")
+  
+  p.age.sum
+  
+}
+
+PlotHamList(list("hamstr_10_10" = hamstr_10_10, hamstr_50 = hamstr_50, "hambac_5" = hambac_5)) #+
+# facet_wrap(~model)

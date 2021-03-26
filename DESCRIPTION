@@ -41,5 +41,5 @@ RoxygenNote: 7.1.1
 Suggests: 
     knitr,
     rmarkdown,
-    rbacon (>= 2.5.0)
+    rbacon (>= 2.5.2)
 VignetteBuilder: knitr
