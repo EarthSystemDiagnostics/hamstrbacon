@@ -2,7 +2,7 @@
 % Please edit documentation in R/hamstr-bacon.R
 \name{return_bacon_age_mods}
 \alias{return_bacon_age_mods}
-\title{Title}
+\title{Extract and reconstruct bacon age models}
 \usage{
 return_bacon_age_mods(hamstr_bacon_fit)
 }
@@ -13,5 +13,6 @@ return_bacon_age_mods(hamstr_bacon_fit)
 
 }
 \description{
-Title
+Extract and reconstruct bacon age models
 }
+\keyword{internal}

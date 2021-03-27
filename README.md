@@ -1,9 +1,9 @@
 hamstr: Hierarchical Accumulation Modelling with Stan and R.
 ================
 Andrew M. Dolman
-2020-10-20
+2021-03-27
 
------
+------------------------------------------------------------------------
 
 **hamstr** implements a *Bacon-like* (Blaauw and Christen, 2011)
 sediment accumulation or age-depth model with hierarchically structured
@@ -435,7 +435,6 @@ plot(hamstr_fit_5pow3, type = "hier")
 ![](readme_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
 
 ``` r
-
 rstan::traceplot(hamstr_fit_5pow3$fit, par = paste0("alpha[", 2:6, "]"),
                  inc_warmup = TRUE)
 ```
@@ -444,14 +443,14 @@ rstan::traceplot(hamstr_fit_5pow3$fit, par = paste0("alpha[", 2:6, "]"),
 
 ### References
 
-  - Blaauw, Maarten, and J. Andrés Christen. 2011. Flexible Paleoclimate
+-   Blaauw, Maarten, and J. Andrés Christen. 2011. Flexible Paleoclimate
     Age-Depth Models Using an Autoregressive Gamma Process. Bayesian
     Analysis 6 (3): 457-74. <doi:10.1214/ba/1339616472>.
 
-  - Parnell, Andrew. 2016. Bchron: Radiocarbon Dating, Age-Depth
+-   Parnell, Andrew. 2016. Bchron: Radiocarbon Dating, Age-Depth
     Modelling, Relative Sea Level Rate Estimation, and Non-Parametric
     Phase Modelling. R package version 4.2.6.
     <https://CRAN.R-project.org/package=Bchron>
 
-  - Stan Development Team (2020). RStan: the R interface to Stan. R
+-   Stan Development Team (2020). RStan: the R interface to Stan. R
     package version 2.21.2. <http://mc-stan.org/>.

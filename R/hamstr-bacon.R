@@ -1,89 +1,17 @@
-# Methods -------
-
-#' Interpolate Age Models at Given Depths
-#' @description Method for generic function predict. Returns the posterior age
-#' models interpolated to new depths given in new_depth.
-#' @param object 
-#' @param new_depth
-#' @inheritParams interpolate_bacon_age_models
-#' @return
-#'
-#' @examples
-#' @export
-#' @method predict hamstr_bacon_fit
-predict.hamstr_bacon_fit <- function(object, new_depth = NULL){
-  
-  interpolate_bacon_age_models(object, new_depth)
-  
-}
-
-#' Title
-#'
-#' @param object a hamstr_bacon_fit object
-#' @return A ggplot object
-#'
-#' @examples
-#' @export
-#' @method plot hamstr_bacon_fit
-plot.hamstr_bacon_fit <- function(hamstr_bacon_fit,
-                                  type = "default",
-                                  summarise = TRUE,
-                                  ...){
-  
-   plot_hamstr_bacon_fit(hamstr_bacon_fit,
-                         summarise = summarise, ...)
-  
-}
-
-#' Summarise hamstr_bacon Age Models
-#'
-#' @param object 
-#' @param type 
-#'
-#' @return
-#'
-#' @examples
-#' @export
-#' @method summary hamstr_bacon_fit
-summary.hamstr_bacon_fit <- function(object){
-  
-  summarise_bacon_age_models(object)
-  
-}
-
-
-#' Summarise hamstr_bacon Age Models
-#'
-#' @param object 
-#' @param type 
-#'
-#' @return
-#'
-#' @examples
-#' @export
-#' @method summary hamstr_bacon_interpolated_ages
-summary.hamstr_bacon_interpolated_ages <- function(object){
-  
-  summarise_interpolated_bacon_age_models(object)
-  
-}
-
-
-
+## Interface to rbacon
 
 # Bacon wrapper ------
 
 
 #' A Wrapper for rbacon::Bacon
 #' 
-#' @param depth 
-#' @param obs_age 
-#' @param obs_err 
-#' @param ... 
+#' @param depth A vector of depths
+#' @param obs_age A vector of observed ages
+#' @param obs_err A vector of errors on the observed ages
 #' @description Wraps the Bacon function from rbacon so that it can be used in a
 #' more typical "R" way. Returns age-depth models in a format to match hamstr 
-#' output. Not all Bacon functionality is accessible, for example there is no 
-#' hiatuses and boundaries.
+#' output. Not all Bacon functionality is accessible, for example hiatuses and 
+#' boundaries cannot be used.
 #' @inheritParams rbacon::Bacon
 #' @return
 #' @export
@@ -107,9 +35,10 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
   if (any(length(depth) == 0, length(obs_age) == 0, length(obs_err)== 0)) 
     stop("depth, age, or obs_err are missing")
   
+  if (length(cc) > 1) stop("Argument cc can only be length 1")
+  
   
   if (is.null(d.min)) d.min <- min(depth)
-  
   if (is.null(d.max)) d.max <- max(depth)
  
   # use temp directory to store Bacon input and output
@@ -166,56 +95,26 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
   
   # Call Bacon
   
-  #do.call(rbacon::Bacon, pars)
   do.call(Bacon2, pars)
   
   par_list <- info[names(info) %in% names(pars)]
   
-  # read the produced settings file 
-  #settings.file <- utils::read.csv(file = paste0(tmpdir, "\\", dirbase, "_settings.txt"), header = FALSE)[,1]
-
-  # create list of used parameters
-  # settings.file <- settings.file %>%
-  #   dplyr::as_tibble() %>%
-  #   tidyr::separate(value, into = c("value", "par"), sep = "#") %>%
-  #   dplyr::mutate(value = readr::parse_number(value)) %>%
-  #   dplyr::select(par, value)
-
-  #par_list <- as.list(settings.file$value)
-  #names(par_list) <- settings.file$par
-
-  #par_list$thick <- info$thick
-
-  #par_list$d.by <- info$d.by
-  #par_list$d.min <- info$d.min
-  #par_list$d.max <- info$d.max
-
-  # construct the file name
-  #K = length(seq(floor(d.min), ceiling(d.max), by = merged.pars$thick))
-  #K <- info$K
-  
-  #outflnm <- paste0(tmpdir, "\\", dirbase, "_", K, ".out")
-
-  # read the posterior
-  #posterior <- utils::read.table(outflnm, header = FALSE)
-
-  posterior <- info$output
+  #posterior <- info$output
   
   # create output, add class attributes and return
-  out <- list(pars = par_list, data = bacon_dat, posterior = posterior, info = info)
+  out <- list(pars = par_list, data = bacon_dat, info = info)
   class(out) <- append("hamstr_bacon_fit", class(out))
 
+  
   return(out)
 }
 
 
-
-#' @param x 
+#' Stack iterations
+#' @param x extracted bacon age models
 #'
 #' @return
 #' @keywords internal
-#'
-#' @examples
 .StackIterations <- function(x){
   x <- as.data.frame(x, stringsAsFactors = FALSE)
   n.row <- nrow(x)
@@ -226,17 +125,16 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
 }
 
 
-#' Title
+#' Extract and reconstruct bacon age models
 #'
 #' @param hamstr_bacon_fit 
 #'
 #' @return
-#' @export
 #'
-#' @examples
+#' @keywords internal
 return_bacon_age_mods <- function(hamstr_bacon_fit){
   
-  posterior <- hamstr_bacon_fit$posterior
+  posterior <- hamstr_bacon_fit$info$output
   pars <- hamstr_bacon_fit$pars
   
   n.col <- ncol(posterior)
@@ -268,18 +166,16 @@ return_bacon_age_mods <- function(hamstr_bacon_fit){
 #' @param new_depth 
 #'
 #' @return
-#' @export
 #'
-#' @examples
+#' @keywords internal
 interpolate_bacon_age_models <- function(hamstr_bacon_fit, new_depth){
   
   if (is.null(new_depth)) {
     new_depth <- hamstr_bacon_fit$data$depth
   }
   
-  
   # get posterior age models
-  pst_age <- hamstr::return_bacon_age_mods(hamstr_bacon_fit)
+  pst_age <- return_bacon_age_mods(hamstr_bacon_fit)
   
   # use base list, split methods, much faster than dplyr::do
   pst_age_lst <- split(pst_age, pst_age$iter)
@@ -304,9 +200,16 @@ interpolate_bacon_age_models <- function(hamstr_bacon_fit, new_depth){
 
 
 
+#' Summarise Bacon age models
+#'
+#' @param hamstr_bacon_fit 
+#'
+#' @return
+#'
+#' @keywords internal
 summarise_bacon_age_models <- function(hamstr_bacon_fit){
   
-  age_mods <- hamstr::return_bacon_age_mods(hamstr_bacon_fit)
+  age_mods <- return_bacon_age_mods(hamstr_bacon_fit)
   
   age_summary <- age_mods %>% 
     dplyr::group_by(depth) %>% 
@@ -323,9 +226,15 @@ summarise_bacon_age_models <- function(hamstr_bacon_fit){
 }
 
 
-summarise_interpolated_bacon_age_models <- function(age_mods){
+#' Summarise interpolated Bacon age models
+#'
+#' @param interpolated_age_mods 
+#'
+#' @return
+#' @keywords internal
+summarise_interpolated_bacon_age_models <- function(interpolated_age_mods){
   
-  age_summary <- age_mods %>% 
+  age_summary <- interpolated_age_mods %>% 
     dplyr::group_by(depth) %>% 
     dplyr::summarise(mean = mean(age),
                      sd = stats::sd(age),
@@ -341,7 +250,14 @@ summarise_interpolated_bacon_age_models <- function(age_mods){
 
 
 
-
+#' Title
+#'
+#' @param hamstr_bacon_fit 
+#' @param summarise 
+#' @param n.iter 
+#'
+#' @return
+#' @keywords internal
 plot_hamstr_bacon_fit <- function(hamstr_bacon_fit, summarise = TRUE, n.iter = 1000) {
   
   if (summarise == TRUE){
@@ -353,6 +269,38 @@ plot_hamstr_bacon_fit <- function(hamstr_bacon_fit, summarise = TRUE, n.iter = 1
 }
 
 
+
+#' Title
+#'
+#' @param hamstr_bacon_fit 
+#'
+#' @return
+#' @keywords internal
+get_bacon_obs_ages <- function(hamstr_bacon_fit){
+  
+  pdf.sums <- lapply(hamstr_bacon_fit$info$calib$probs,
+                     function(x) SummariseEmpiricalPDF(x[,1], x[,2]))
+  
+  obs_ages <- dplyr::bind_rows(
+    lapply(pdf.sums, function(x) c(age = x[["median"]], err = x[["sd"]]))
+  )    %>%
+    dplyr::mutate(age_upr = age + 2*err,
+                  age_lwr = age - 2*err) %>% 
+    dplyr::mutate(depth = hamstr_bacon_fit$info$calib$d)
+  
+  return(obs_ages)
+  
+}
+
+
+
+#' Plot individual Bacon age models
+#'
+#' @param hamstr_bacon_fit 
+#' @param n.iter 
+#'
+#' @return
+#' @keywords internal
 plot_bacon_age_models <- function(hamstr_bacon_fit, n.iter = 1000){
   
   
@@ -377,17 +325,18 @@ plot_bacon_age_models <- function(hamstr_bacon_fit, n.iter = 1000){
   pdf.sums <- lapply(hamstr_bacon_fit$info$calib$probs,
                      function(x) SummariseEmpiricalPDF(x[,1], x[,2]))
  
-  obs_ages <- dplyr::bind_rows(
-    lapply(pdf.sums, function(x) c(age = x[["median"]], err = x[["sd"]]))
-    )    %>%
-    dplyr::mutate(age_upr = age + 2*err,
-                  age_lwr = age - 2*err) %>% 
-    dplyr::mutate(depth = hamstr_bacon_fit$info$calib$d)
+  # obs_ages <- dplyr::bind_rows(
+  #   lapply(pdf.sums, function(x) c(age = x[["median"]], err = x[["sd"]]))
+  #   )    %>%
+  #   dplyr::mutate(age_upr = age + 2*err,
+  #                 age_lwr = age - 2*err) %>% 
+  #   dplyr::mutate(depth = hamstr_bacon_fit$info$calib$d)
   
 
+  obs_ages <- get_bacon_obs_ages(hamstr_bacon_fit)
   
   
-  posterior_ages <- hamstr::return_bacon_age_mods(hamstr_bacon_fit)
+  posterior_ages <- return_bacon_age_mods(hamstr_bacon_fit)
   
   p.fit <- posterior_ages %>%
     dplyr::filter(iter %in% sample(unique(iter), n.iter, replace = FALSE)) %>%
@@ -411,24 +360,29 @@ plot_bacon_age_models <- function(hamstr_bacon_fit, n.iter = 1000){
   p.fit
 }
 
+#' Plot summarised Bacon age models
+#'
+#' @param hamstr_bacon_fit 
+#'
+#' @return
+#' @keywords internal
 plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
   
  
   age_summary <- summarise_bacon_age_models(hamstr_bacon_fit)
   
  
-  pdf.sums <- lapply(hamstr_bacon_fit$info$calib$probs,
-                     function(x) SummariseEmpiricalPDF(x[,1], x[,2]))
+  # pdf.sums <- lapply(hamstr_bacon_fit$info$calib$probs,
+  #                    function(x) SummariseEmpiricalPDF(x[,1], x[,2]))
+  # 
+  # obs_ages <- dplyr::bind_rows(
+  #   lapply(pdf.sums, function(x) c(age = x[["median"]], err = x[["sd"]]))
+  # )    %>%
+  #   dplyr::mutate(age_upr = age + 2*err,
+  #                 age_lwr = age - 2*err) %>% 
+  #   dplyr::mutate(depth = hamstr_bacon_fit$info$calib$d)
   
-  obs_ages <- dplyr::bind_rows(
-    lapply(pdf.sums, function(x) c(age = x[["median"]], err = x[["sd"]]))
-  )    %>%
-    dplyr::mutate(age_upr = age + 2*err,
-                  age_lwr = age - 2*err) %>% 
-    dplyr::mutate(depth = hamstr_bacon_fit$info$calib$d)
-  
-  
-  
+  obs_ages <- get_bacon_obs_ages(hamstr_bacon_fit)
   
   
   p.age.sum <- age_summary %>% 
@@ -451,4 +405,76 @@ plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
   
   p.age.sum
 }
+
+
+# Methods -------
+
+#' Interpolate Age Models at Given Depths
+#' @description Method for generic function predict. Returns the posterior age
+#' models interpolated to new depths given in new_depth.
+#' @param object 
+#' @param new_depth
+#' @inheritParams interpolate_bacon_age_models
+#' @return
+#'
+#' @examples
+#' @export
+#' @method predict hamstr_bacon_fit
+predict.hamstr_bacon_fit <- function(object, new_depth = NULL){
+  
+  interpolate_bacon_age_models(object, new_depth)
+  
+}
+
+#' Title
+#'
+#' @param object a hamstr_bacon_fit object
+#' @return A ggplot object
+#'
+#' @examples
+#' @export
+#' @method plot hamstr_bacon_fit
+plot.hamstr_bacon_fit <- function(hamstr_bacon_fit,
+                                  type = "default",
+                                  summarise = TRUE,
+                                  ...){
+  
+  plot_hamstr_bacon_fit(hamstr_bacon_fit,
+                        summarise = summarise, ...)
+  
+}
+
+#' Summarise hamstr_bacon Age Models
+#'
+#' @param object 
+#' @param type 
+#'
+#' @return
+#'
+#' @examples
+#' @export
+#' @method summary hamstr_bacon_fit
+summary.hamstr_bacon_fit <- function(object){
+  
+  summarise_bacon_age_models(object)
+  
+}
+
+
+#' Summarise hamstr_bacon Age Models
+#'
+#' @param object 
+#' @param type 
+#'
+#' @return
+#'
+#' @examples
+#' @export
+#' @method summary hamstr_bacon_interpolated_ages
+summary.hamstr_bacon_interpolated_ages <- function(object){
+  
+  summarise_interpolated_bacon_age_models(object)
+  
+}
+
 

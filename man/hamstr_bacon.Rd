@@ -9,16 +9,19 @@ hamstr_bacon(
   obs_age,
   obs_err,
   thick = NULL,
-  d.min = NA,
-  d.max = NA,
-  d.by = NA,
+  d.min = NULL,
+  d.max = NULL,
+  d.by = NULL,
   acc.shape = 1.5,
   acc.mean = 20,
-  mem.strength = 4,
-  mem.mean = 0.7,
+  mem.strength = 10,
+  mem.mean = 0.5,
   plot.pdf = FALSE,
   ask = FALSE,
-  suggest = FALSE
+  suggest = TRUE,
+  accept.suggestions = TRUE,
+  cc = 1,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -43,18 +46,27 @@ Its shape is set by acc.shape (default \code{acc.shape=1.5}; higher values resul
 which can be changed to, e.g., 5, 10 or 50 for different kinds of deposits). Multiple values can be given in case of hiatuses or boundaries, e.g., Bacon(hiatus.depths=23, acc.mean=c(5,20))}
 
 \item{mem.strength}{The prior for the memory (dependence of accumulation rate between neighbouring depths) is a beta distribution, which looks much like the gamma distribution.
-but its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.strength=4}
-(higher values result in more peaked shapes) allow for a large range of posterior memory values.}
+but its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.strength=10}
+(higher values result in more peaked shapes) allow for a large range of posterior memory values. Please note that the default memory prior has been updated from rbacon version 2.5.1 on, to repair a bug.}
 
 \item{mem.mean}{The prior for the memory is a beta distribution, which looks much like the gamma distribution but
-its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.mean=0.7}
-allow for a large range of posterior memory values.}
+its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.mean=0.5}
+allow for a large range of posterior memory values. Please note that the default memory prior has been updated from rbacon version 2.5.1. on, to repair a bug.}
 
 \item{plot.pdf}{Produce a pdf file of the age-depth plot. Defaults to \code{plot.pdf=TRUE} after a Bacon run.}
 
 \item{ask}{By default Bacon will ask you to confirm that you want to run the core with the provided settings. Disable this using \code{ask=FALSE} (e.g., for batch runs).}
 
 \item{suggest}{If initial analysis of the data indicates abnormally slow or fast accumulation rates, Bacon will suggest to change the prior.}
+
+\item{accept.suggestions}{Automatically accept the suggested values. Use with care. Default \code{accept.suggestions=FALSE}.
+Also, if the length of the core would cause too few or too many sections with the default settings, Bacon will suggest an alternative section thickness \code{thick}.
+Accept these suggested alternative settings by typing "y" (or "yes please" if you prefer to be polite), or leave as is by typing "n" (or anything else, really). To get rid of these suggestions, use \code{suggest=FALSE}.}
+
+\item{cc}{Calibration curve for C-14 dates: \code{cc=1} for IntCal20 (northern hemisphere terrestrial), \code{cc=2} for Marine20 (marine),
+\code{cc=3} for SHCal20 (southern hemisphere terrestrial). For dates that are already on the cal BP scale use \code{cc=0}.}
+
+\item{verbose}{Provide feedback on what is happening (default \code{verbose=TRUE}).}
 
 \item{...}{}
 }

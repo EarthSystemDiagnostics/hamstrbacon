@@ -135,13 +135,14 @@ SummariseEmpiricalPDF <- function(x, p){
   # Mode
   max.wt <- max(p)
   n.max <- sum(p == max.wt)
-  if (n.max > 1)
-    warning(paste0(n.max,
-                   " x with equal maximum probability. Returning the first"))
+  if (n.max > 1) warning(
+    paste0("In mode calculation, these values have equal probability: ",
+           paste0(x[p == max.wt], collapse = ", "), ". returning first"))
   mode <- x[which.max(p)]
 
   return(c("mean" = w.mean, "median" = w.median, "mode" = mode, "sd" = w.sd))
 }
+
 
 
 #' Compare the Full Empirical Calendar Age PDF of a Radiocarbon Date with a
