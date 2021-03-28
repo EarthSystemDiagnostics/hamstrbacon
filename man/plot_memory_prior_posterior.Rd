@@ -16,12 +16,12 @@ A ggplot2 object
 Plot Memory Prior and Posterior
 }
 \keyword{0,}
-\keyword{0.7,}
+\keyword{0.5,}
 \keyword{10),}
+\keyword{10,}
 \keyword{20,}
 \keyword{2000,}
 \keyword{3)}
-\keyword{4,}
 \keyword{6,}
 \keyword{<-}
 \keyword{=}
@@ -40,7 +40,7 @@ Plot Memory Prior and Posterior
 \keyword{internal}
 \keyword{iter}
 \keyword{mem_mean}
-\keyword{mem_strength}
+\keyword{mem_strength=}
 \keyword{nu}
 \keyword{obs_age}
 \keyword{obs_err}

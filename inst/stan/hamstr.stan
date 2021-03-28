@@ -27,7 +27,7 @@ data {
   real<lower = 0> acc_mean_prior;
   
   // shape of the gamma distributions
-  real<lower = 0> shape; 
+  real<lower = 0> acc_shape; 
   
   
   // hyperparameters for prior distribution on memory strength (the AR1 coefficient)
@@ -141,8 +141,8 @@ model {
   alpha[1] ~ normal(0, 10*acc_mean_prior);
   
   // the gamma distributed innovations
-  // prior parameterised by use set shape and the value of it's parent section
-  alpha[2:K_tot] ~ gamma(shape, shape ./ alpha[parent[2:K_tot]]);
+  // prior parameterised by use set acc_shape and the value of it's parent section
+  alpha[2:K_tot] ~ gamma(acc_shape, acc_shape ./ alpha[parent[2:K_tot]]);
   
   // the memory parameters
   R ~ beta(mem_alpha, mem_beta);

@@ -14,7 +14,7 @@ hamstr_bacon(
   d.by = NULL,
   acc.shape = 1.5,
   acc.mean = 20,
-  mem.strength = 10,
+  mem_strength = 10,
   mem.mean = 0.5,
   plot.pdf = FALSE,
   ask = FALSE,
@@ -25,11 +25,11 @@ hamstr_bacon(
 )
 }
 \arguments{
-\item{depth}{}
+\item{depth}{A vector of depths}
 
-\item{obs_age}{}
+\item{obs_age}{A vector of observed ages}
 
-\item{obs_err}{}
+\item{obs_err}{A vector of errors on the observed ages}
 
 \item{thick}{Bacon will divide the core into sections of equal thickness specified by thick (default \code{thick=5}).}
 
@@ -44,10 +44,6 @@ Its shape is set by acc.shape (default \code{acc.shape=1.5}; higher values resul
 
 \item{acc.mean}{The accumulation rate prior consists of a gamma distribution with two parameters. Its mean is set by acc.mean (default \code{acc.mean=20} yr/cm (or whatever age or depth units are chosen),
 which can be changed to, e.g., 5, 10 or 50 for different kinds of deposits). Multiple values can be given in case of hiatuses or boundaries, e.g., Bacon(hiatus.depths=23, acc.mean=c(5,20))}
-
-\item{mem.strength}{The prior for the memory (dependence of accumulation rate between neighbouring depths) is a beta distribution, which looks much like the gamma distribution.
-but its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.strength=10}
-(higher values result in more peaked shapes) allow for a large range of posterior memory values. Please note that the default memory prior has been updated from rbacon version 2.5.1 on, to repair a bug.}
 
 \item{mem.mean}{The prior for the memory is a beta distribution, which looks much like the gamma distribution but
 its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.mean=0.5}
@@ -67,8 +63,6 @@ Accept these suggested alternative settings by typing "y" (or "yes please" if yo
 \code{cc=3} for SHCal20 (southern hemisphere terrestrial). For dates that are already on the cal BP scale use \code{cc=0}.}
 
 \item{verbose}{Provide feedback on what is happening (default \code{verbose=TRUE}).}
-
-\item{...}{}
 }
 \value{
 
@@ -76,6 +70,6 @@ Accept these suggested alternative settings by typing "y" (or "yes please" if yo
 \description{
 Wraps the Bacon function from rbacon so that it can be used in a
 more typical "R" way. Returns age-depth models in a format to match hamstr 
-output. Not all Bacon functionality is accessible, for example there is no 
-hiatuses and boundaries.
+output. Not all Bacon functionality is accessible, for example hiatuses and 
+boundaries cannot be used.
 }

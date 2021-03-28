@@ -1,0 +1,116 @@
+---
+title: "Using and comparing hamstr_bacon"
+author: "Andrew M. Dolman"
+date: "26/03/2021"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, autodep = TRUE)
+```
+
+```{r}
+library(hamstr)
+```
+
+
+# Compare hamstr models with Bacon models fit using the hamstr_bacon interface
+
+
+## Using the example dataset from Bacon
+
+
+Calibrate the radiocarbon ages for hamstr
+
+```{r, warning=FALSE}
+MSB2K_cal <- calibrate_14C_age(MSB2K, age.14C = "age", age.14C.se = "error")
+```
+
+
+First run a hamstr model for comparison.
+
+
+```{r}
+hamstr_10_10 <- hamstr(depth = MSB2K_cal$depth,
+                   obs_age = MSB2K_cal$age.14C.cal,
+                   obs_err = MSB2K_cal$age.14C.cal.se,
+                   K = c(10, 10),
+                   cores = 3)
+```
+
+```{r}
+plot(hamstr_10_10, plot_diagnostics = FALSE)
+```
+
+
+Then run a hamstr_bacon model. Remember to pass the uncalibrated radiocarbon dates to hamstr_bacon as Bacon will do the calibration.
+
+```{r}
+hambac_5 <- hamstr_bacon(depth = MSB2K_cal$depth,
+                               obs_age = MSB2K_cal$age,
+                               obs_err = MSB2K_cal$error,
+                               thick = 5, cc = 1)
+
+plot(hambac_5)
+```
+
+The plot method works for hamstr_bacon models too.
+
+```{r, warning=FALSE}
+plot(hambac_5,
+     # plot the individual iterations rather than a summary, and only plot 30
+     summarise = FALSE,
+     n.iter = 30)
+```
+
+
+## Getting the age-model realisations and summaries
+
+Summarise the age models at the modelled depths
+
+```{r}
+summary(hambac_5)
+```
+
+
+Get all the iterations with predict()
+
+```{r}
+predict(hambac_5)
+```
+
+
+If you want specific depths you can ask for them and the age models will be linearly interpolated
+
+```{r}
+spec_depths <- predict(hambac_5, depth = c(10:15))
+
+spec_depths
+
+```
+
+Summary also works after interpolation
+
+```{r}
+summary(spec_depths)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

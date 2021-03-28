@@ -41,7 +41,7 @@ extract_hamstr_fit <- function(object, pars = c("ages"), ...){
 #'   obs_err = MSB2K$error,
 #'   K = c(10, 10), nu = 6,
 #'   acc_mean_prior = 20,
-#'   mem_mean = 0.7, mem_strength = 4,
+#'   mem_mean = 0.5, mem_strength= 10,
 #'   inflate_errors = 0,
 #'   iter = 2000, chains = 3)
 #'   
@@ -75,7 +75,7 @@ get_posterior_parameters <- function(hamstr_fit){
 #'   obs_err = MSB2K$error,
 #'   K = c(10, 10), nu = 6,
 #'   acc_mean_prior = 20,
-#'   mem_mean = 0.7, mem_strength = 4,
+#'   mem_mean = 0.5, mem_strength= 10,
 #'   inflate_errors = 0,
 #'   iter = 2000, chains = 3)
 #'   
@@ -92,36 +92,21 @@ get_posterior_ages <- function(hamstr_fit){
     tidyr::gather(par, age, -iter) %>% 
     dplyr::mutate(idx = readr::parse_number(par),
            par = "c_ages") %>% 
-    dplyr::left_join(depths, .data$.) %>% 
-    dplyr::arrange(.data$par, .data$iter, .data$idx, .data$depth)
+    dplyr::left_join(depths, .data$., by = "idx") %>% 
+    #dplyr::arrange(.data$par, .data$iter, .data$idx, .data$depth)
+    dplyr::select(.data$iter,.data$depth, .data$age) %>% 
+    dplyr::arrange(.data$iter, .data$depth, .data$age)
   
   return(posterior_ages)
   
 }
 
 
-#' Interpolate Age Models at Given Depths
-#' @description Method for generic function predict. Returns the posterior age
-#' models interpolated to new depths given in new_depth.
-#' @param object 
-#' @param new_depth
-#' @inheritParams interpolate_age_models
-#' @return
-#'
-#' @examples
-#' @export
-#' @method predict hamstr_fit
-predict.hamstr_fit <- function(object, new_depth = NULL){
-  
-  interpolate_age_models(object, new_depth)
-  
-}
-
 
 #' Interpolate Posterior Age Model At New Depths
 #'
 #' @inheritParams plot_hamstr
-#' @param new_depth a vector of depths at which to interpolate the age models. 
+#' @param depth a vector of depths at which to interpolate the age models. 
 #' If left NULL, the depths of the age control points are used.
 #'
 #' @return hamstr_interpolated_ages object
@@ -135,77 +120,84 @@ predict.hamstr_fit <- function(object, new_depth = NULL){
 #'   obs_err = MSB2K$error,
 #'   K = c(10, 10), nu = 6,
 #'   acc_mean_prior = 20,
-#'   mem_mean = 0.7, mem_strength = 4,
+#'   mem_mean = 0.5, mem_strength= 10,
 #'   inflate_errors = 0,
 #'   iter = 2000, chains = 3)
 #'   
-#' interpolate.age.models(fit, new_depth = seq(1000, 15000, by = 1000))
+#' interpolate.age.models(fit, depth = seq(1000, 15000, by = 1000))
 #' }
 #' 
-interpolate_age_models <- function(hamstr_fit, new_depth = NULL){
+interpolate_age_models <- function(hamstr_fit, depth) {
   
-  if (is.null(new_depth)) {
-    new_depth <- hamstr_fit$data$depth
+  if (is.numeric(depth) == FALSE) {
+    
+    depth <- match.arg(depth, choices = c("modelled", "data"))
+    
+    if (depth == "modelled") {
+      out <- get_posterior_ages(hamstr_fit)
+      class(out) <- append("hamstr_interpolated_ages", class(out))
+      
+      return(out)
+      
+    } else {
+      
+      if (depth == "data") {
+        
+        depth <- hamstr_fit$data$depth
+        
+        # get posterior age models
+        pst_age <- get_posterior_ages(hamstr_fit)
+        
+        # use base list, split methods, much faster than dplyr::do
+        pst_age_lst <- split(pst_age, pst_age$iter)
+        
+        new_pst_age <- lapply(pst_age_lst, function(x) {
+          stats::approx(x$depth, x$age, depth)$y
+        })
+        
+        out <- expand.grid(depth = depth,
+                           iter = 1:length(pst_age_lst))
+        
+        out$age <- unlist(new_pst_age)
+        
+        out <- dplyr::as_tibble(out)
+        out <- out[, c(2, 1, 3)]
+        
+        class(out) <- append("hamstr_interpolated_ages", class(out))
+        
+        return(out)
+        
+      }
+    }
+  } else if (is.numeric(depth)) {
+    depth <- depth
+    
+    # get posterior age models
+    pst_age <- get_posterior_ages(hamstr_fit)
+    
+    # use base list, split methods, much faster than dplyr::do
+    pst_age_lst <- split(pst_age, pst_age$iter)
+    
+    new_pst_age <- lapply(pst_age_lst, function(x) {
+      stats::approx(x$depth, x$age, depth)$y
+    })
+    
+    out <- expand.grid(depth = depth,
+                       iter = 1:length(pst_age_lst))
+    
+    out$age <- unlist(new_pst_age)
+    
+    out <- dplyr::as_tibble(out)
+    out <- out[, c(2, 1, 3)]
+    
+    class(out) <- append("hamstr_interpolated_ages", class(out))
+    
+    return(out)
+    
   }
   
-  # get posterior age models
-  pst_age <- get_posterior_ages(hamstr_fit)
-  
-  # use base list, split methods, much faster than dplyr::do
-  pst_age_lst <- split(pst_age, pst_age$iter)
-  
-  new_pst_age <- lapply(pst_age_lst, function(x) {
-    stats::approx(x$depth, x$age, new_depth)$y
-  })
-  
-  out <- expand.grid(depth = new_depth,
-                     iter = 1:length(pst_age_lst)
-                     )
-  
-  out$age <- unlist(new_pst_age)
-  
-  out <- dplyr::as_tibble(out) 
-  out <- out[,c(2,1,3)]
-  
-  class(out) <- append("hamstr_interpolated_ages", class(out))
-  
-  return(out)
 }
 
-
-#' Title
-#'
-#' @param object 
-#' @param type 
-#'
-#' @return
-#'
-#' @examples
-#' @export
-#' @method summary hamstr_fit
-summary.hamstr_fit <- function(object, type = "age_models"){
-  if (type == "age_models"){
-    summarise_age_models(object)
-  }
-}
-
-
-#' Title
-#'
-#' @param object 
-#' @param type 
-#'
-#' @return
-#'
-#' @examples
-#' @export
-#' @method summary hamstr_interpolated_ages
-summary.hamstr_interpolated_ages <- function(object, type = "age_models"){
- 
-   if (type == "age_models"){
-    summarise_new_ages(object)
-     }
-}
 
 
 
@@ -248,7 +240,7 @@ summarise_new_ages <- function(new_ages){
 #'   obs_err = MSB2K$error,
 #'   K = c(10, 10), nu = 6,
 #'   acc_mean_prior = 20,
-#'   mem_mean = 0.7, mem_strength = 4,
+#'   mem_mean = 0.5, mem_strength= 10,
 #'   inflate_errors = 0,
 #'   iter = 2000, chains = 3)
 #'   
@@ -266,12 +258,67 @@ summarise_age_models <- function(hamstr_fit){
                      idx = 1:length(hamstr_fit$data$modelled_depths))
     age_summary <- age_summary %>% 
       dplyr::mutate(idx = readr::parse_number(par)) %>% 
-      dplyr::left_join(depths, .)
+      dplyr::left_join(depths, ., by = "idx")
     
   }
   return(age_summary)
 }
 
+# Methods --------
+
+#' Interpolate Age Models at Given Depths
+#' @description Method for generic function predict. Returns the posterior age
+#' models interpolated to new depths given in depth.
+#' @param object 
+#' @param depth
+#' @inheritParams interpolate_age_models
+#' @return
+#'
+#' @examples
+#' @export
+#' @method predict hamstr_fit
+predict.hamstr_fit <- function(object, depth = "modelled"){
+  
+  #depth <- match.arg(depth)
+  
+  interpolate_age_models(object, depth)
+  
+}
+
+
+#' Title
+#'
+#' @param object 
+#' @param type 
+#'
+#' @return
+#'
+#' @examples
+#' @export
+#' @method summary hamstr_fit
+summary.hamstr_fit <- function(object, type = "age_models"){
+  if (type == "age_models"){
+    summarise_age_models(object)
+  }
+}
+
+
+#' Title
+#'
+#' @param object 
+#' @param type 
+#'
+#' @return
+#'
+#' @examples
+#' @export
+#' @method summary hamstr_interpolated_ages
+summary.hamstr_interpolated_ages <- function(object, type = "age_models"){
+  
+  if (type == "age_models"){
+    summarise_new_ages(object)
+  }
+}
 
 
 

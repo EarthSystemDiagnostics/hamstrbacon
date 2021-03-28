@@ -65,7 +65,7 @@ plot.hamstr_fit <- function(object,
 #'   obs_err = MSB2K$error,
 #'   K = c(10, 10), nu = 6,
 #'   acc_mean_prior = 20,
-#'   mem_mean = 0.7, mem_strength = 4,
+#'   mem_mean = 0.5, mem_strength= 10,
 #'   inflate_errors = 0,
 #'   iter = 2000, chains = 3)
 #'   
@@ -117,7 +117,7 @@ plot_hamstr <- function(hamstr_fit, summarise = TRUE, n.iter = 1000, plot_diagno
 #'   obs_err = MSB2K$error,
 #'   K = c(10, 10), nu = 6,
 #'   acc_mean_prior = 20,
-#'   mem_mean = 0.7, mem_strength = 4,
+#'   mem_mean = 0.5, mem_strength= 10,
 #'   inflate_errors = 0,
 #'   iter = 2000, chains = 3)
 #'   
@@ -198,7 +198,7 @@ plot_summary_age_models <- function(hamstr_fit){
 #'   obs_err = MSB2K$error,
 #'   K = c(10, 10), nu = 6,
 #'   acc_mean_prior = 20,
-#'   mem_mean = 0.7, mem_strength = 4,
+#'   mem_mean = 0.5, mem_strength= 10,
 #'   inflate_errors = 0,
 #'   iter = 2000, chains = 3)
 #'   
@@ -320,7 +320,7 @@ plot_prior_posterior_hist <- function(prior, posterior){
 #'   obs_err = MSB2K$error,
 #'   K = c(10, 10), nu = 6,
 #'   acc_mean_prior = 20,
-#'   mem_mean = 0.7, mem_strength = 4,
+#'   mem_mean = 0.5, mem_strength= 10,
 #'   inflate_errors = 0,
 #'   iter = 2000, chains = 3)
 #'   
@@ -425,7 +425,7 @@ plot_infl_prior_posterior <- function(hamstr_fit){
 #'   obs_err = MSB2K$error,
 #'   K = c(10, 10), nu = 6,
 #'   acc_mean_prior = 20,
-#'   mem_mean = 0.7, mem_strength = 4,
+#'   mem_mean = 0.5, mem_strength= 10,
 #'   inflate_errors = 0,
 #'   iter = 2000, chains = 3)
 #'   
@@ -498,7 +498,7 @@ plot_acc_mean_prior_posterior <- function(hamstr_fit) {
 #'   obs_err = MSB2K$error,
 #'   K = c(10, 10), nu = 6,
 #'   acc_mean_prior = 20,
-#'   mem_mean = 0.7, mem_strength = 4,
+#'   mem_mean = 0.5, mem_strength= 10,
 #'   inflate_errors = 0,
 #'   iter = 2000, chains = 3)
 #'   
@@ -582,7 +582,7 @@ add_subdivisions <- function(gg, hamstr_fit){
 #'   obs_err = MSB2K$error,
 #'   K = c(10, 10), nu = 6,
 #'   acc_mean_prior = 20,
-#'   mem_mean = 0.7, mem_strength = 4,
+#'   mem_mean = 0.5, mem_strength= 10,
 #'   inflate_errors = 0,
 #'   iter = 2000, chains = 3)
 #'   
@@ -597,7 +597,7 @@ plot_hierarchical_acc_rate <- function(hamstr_fit){
   
   alph <- tibble::as_tibble(a3, rownames = "par") %>%
     dplyr::mutate(alpha_idx = readr::parse_number(par)) %>%
-    dplyr::left_join(idx, .) %>%
+    dplyr::left_join(idx, ., by = "alpha_idx") %>%
     dplyr::mutate(lvl = factor(lvl))
 
   # for each unit at each level in hierarchy get max and min depth 

@@ -22,7 +22,7 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
                          d.min = NULL, d.max = NULL,
                          d.by = NULL,
                          acc.shape = 1.5, acc.mean = 20,
-                         mem.strength = 10, mem.mean = 0.5,
+                         mem_strength = 10, mem.mean = 0.5,
                          plot.pdf = FALSE,
                          ask = FALSE,
                          suggest = TRUE, accept.suggestions = TRUE,
@@ -163,15 +163,15 @@ return_bacon_age_mods <- function(hamstr_bacon_fit){
 #' Title
 #'
 #' @param hamstr_bacon_fit 
-#' @param new_depth 
+#' @param depth 
 #'
 #' @return
 #'
 #' @keywords internal
-interpolate_bacon_age_models <- function(hamstr_bacon_fit, new_depth){
+interpolate_bacon_age_models <- function(hamstr_bacon_fit, depth){
   
-  if (is.null(new_depth)) {
-    new_depth <- hamstr_bacon_fit$data$depth
+  if (is.null(depth)) {
+    depth <- hamstr_bacon_fit$data$depth
   }
   
   # get posterior age models
@@ -181,10 +181,10 @@ interpolate_bacon_age_models <- function(hamstr_bacon_fit, new_depth){
   pst_age_lst <- split(pst_age, pst_age$iter)
   
   new_pst_age <- lapply(pst_age_lst, function(x) {
-    stats::approx(x$depth, x$age, new_depth)$y
+    stats::approx(x$depth, x$age, depth)$y
   })
   
-  out <- expand.grid(depth = new_depth,
+  out <- expand.grid(depth = depth,
                      iter = 1:length(pst_age_lst)
   )
   
@@ -279,7 +279,12 @@ plot_hamstr_bacon_fit <- function(hamstr_bacon_fit, summarise = TRUE, n.iter = 1
 get_bacon_obs_ages <- function(hamstr_bacon_fit){
   
   pdf.sums <- lapply(hamstr_bacon_fit$info$calib$probs,
-                     function(x) SummariseEmpiricalPDF(x[,1], x[,2]))
+                     function(x) {
+                       # suppress warnings about modes as mode not used anyway
+                       suppressWarnings(
+                         SummariseEmpiricalPDF(x[,1], x[,2])
+                         )
+                       })
   
   obs_ages <- dplyr::bind_rows(
     lapply(pdf.sums, function(x) c(age = x[["median"]], err = x[["sd"]]))
@@ -304,34 +309,14 @@ get_bacon_obs_ages <- function(hamstr_bacon_fit){
 plot_bacon_age_models <- function(hamstr_bacon_fit, n.iter = 1000){
   
   
-  # obs_ages <- hamstr_bacon_fit$info$dets 
-  # 
-  # if (info$cc != 0){
-  #  obs_ages <- hamstr::calibrate_14C_age(obs_ages, age.14C = "age", age.14C.se = "error")
-  #  obs_ages <- obs_ages %>%
-  #   dplyr::select(-age, -error) %>% 
-  #   dplyr::rename(.,
-  #                 age = age.14C.cal,
-  #                 err  = age.14C.cal.se) %>% 
-  #   dplyr::mutate(age_upr = age + 2*err,
-  #                 age_lwr = age - 2*err)
-  # }  else{
-  #   obs_ages <- obs_ages %>%
-  #     dplyr::mutate(age_upr = age + 2*error,
-  #                   age_lwr = age - 2*error)
-  # }
-
-  
   pdf.sums <- lapply(hamstr_bacon_fit$info$calib$probs,
-                     function(x) SummariseEmpiricalPDF(x[,1], x[,2]))
+                     function(x) {
+                       # suppress warnings about modes as mode not used anyway
+                       suppressWarnings(
+                       SummariseEmpiricalPDF(x[,1], x[,2])
+                       )
+                       })
  
-  # obs_ages <- dplyr::bind_rows(
-  #   lapply(pdf.sums, function(x) c(age = x[["median"]], err = x[["sd"]]))
-  #   )    %>%
-  #   dplyr::mutate(age_upr = age + 2*err,
-  #                 age_lwr = age - 2*err) %>% 
-  #   dplyr::mutate(depth = hamstr_bacon_fit$info$calib$d)
-  
 
   obs_ages <- get_bacon_obs_ages(hamstr_bacon_fit)
   
@@ -371,17 +356,6 @@ plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
  
   age_summary <- summarise_bacon_age_models(hamstr_bacon_fit)
   
- 
-  # pdf.sums <- lapply(hamstr_bacon_fit$info$calib$probs,
-  #                    function(x) SummariseEmpiricalPDF(x[,1], x[,2]))
-  # 
-  # obs_ages <- dplyr::bind_rows(
-  #   lapply(pdf.sums, function(x) c(age = x[["median"]], err = x[["sd"]]))
-  # )    %>%
-  #   dplyr::mutate(age_upr = age + 2*err,
-  #                 age_lwr = age - 2*err) %>% 
-  #   dplyr::mutate(depth = hamstr_bacon_fit$info$calib$d)
-  
   obs_ages <- get_bacon_obs_ages(hamstr_bacon_fit)
   
   
@@ -411,18 +385,18 @@ plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
 
 #' Interpolate Age Models at Given Depths
 #' @description Method for generic function predict. Returns the posterior age
-#' models interpolated to new depths given in new_depth.
+#' models interpolated to new depths given in depth.
 #' @param object 
-#' @param new_depth
+#' @param depth
 #' @inheritParams interpolate_bacon_age_models
 #' @return
 #'
 #' @examples
 #' @export
 #' @method predict hamstr_bacon_fit
-predict.hamstr_bacon_fit <- function(object, new_depth = NULL){
+predict.hamstr_bacon_fit <- function(object, depth = NULL){
   
-  interpolate_bacon_age_models(object, new_depth)
+  interpolate_bacon_age_models(object, depth)
   
 }
 

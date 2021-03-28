@@ -1,0 +1,75 @@
+---
+title: "Untitled"
+author: "Andrew M. Dolman"
+date: "28/03/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, warning=FALSE}
+library(hamstr)
+MSB2K_cal <- calibrate_14C_age(MSB2K, age.14C = "age", age.14C.se = "error")
+```
+
+
+
+### Varying the number and structure of the modelled sections.
+
+To get to approximately 100 sections at the finest level, we could have a single level `c(100)` or at the other extreme c(2,2,2,2,2,2,2), which would result in 2^7 = 128 sections. 
+
+There is a trade-off between these two approaches. Having the maximum number of hierarchical levels maximises the ultimate flexibility of the model, but comes at a cost of computation time and model stability. More hierarchical levels means that more parameters are ultimately being estimated to end up with the same number at the finest level. For example, `c(10, 10)` results in 100 fine sections but 110 accumulation rates are estimated. `c(2, 2, 2, 2, 2, 2, 2)` results in 128 sections but 254 parameters are estimated. However, more importantly, having fewer child sections means that less information is being used "pooled" to estimate the parent section mean. Each parameter is estimated with less certainty and therefore is a less informative prior for its child sections. This makes sampling the posterior distribution more difficult, slower, and less stable. The optimal structure will likely depend on the given dataset and optimising this is under investigation, but hierarchical levels of about 10 seem to work well.
+
+Here we compare a 2^7 structure with a single level of 128 sections. 
+
+
+```{r}
+hamstr_fit_2pow7 <- hamstr(depth = MSB2K_cal$depth,
+                   obs_age = MSB2K_cal$age.14C.cal,
+                   obs_err = MSB2K_cal$age.14C.cal.se,
+                   K = c(2, 2, 2, 2, 2, 2, 2))
+
+hamstr_fit_5pow3 <- hamstr(depth = MSB2K_cal$depth,
+                   obs_age = MSB2K_cal$age.14C.cal,
+                   obs_err = MSB2K_cal$age.14C.cal.se,
+                   K = c(5,5,5))
+
+hamstr_fit_128 <- hamstr(depth = MSB2K_cal$depth,
+                   obs_age = MSB2K_cal$age.14C.cal,
+                   obs_err = MSB2K_cal$age.14C.cal.se,
+                   K = c(128))
+```
+
+```{r}
+rstan::get_elapsed_time(hamstr_fit_2pow7$fit)
+rstan::get_elapsed_time(hamstr_fit_5pow3$fit)
+rstan::get_elapsed_time(hamstr_fit_128$fit)
+```
+
+
+
+```{r}
+plot(hamstr_fit_2pow7)
+plot(hamstr_fit_5pow3)
+plot(hamstr_fit_128)
+
+```
+
+
+#### Refit with 21 non-hierarchical sections for comparison with figures in Blaauw and Christen (2011)
+
+
+```{r}
+hamstr_fit_21 <- hamstr(depth = MSB2K_cal$depth,
+                   obs_age = MSB2K_cal$age.14C.cal,
+                   obs_err = MSB2K_cal$age.14C.cal.se,
+                   K = c(21))
+```
+
+
+```{r}
+plot(hamstr_fit_21, summarise = FALSE)
+```
