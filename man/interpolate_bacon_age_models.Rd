@@ -4,12 +4,12 @@
 \alias{interpolate_bacon_age_models}
 \title{Title}
 \usage{
-interpolate_bacon_age_models(hamstr_bacon_fit, new_depth)
+interpolate_bacon_age_models(hamstr_bacon_fit, depth)
 }
 \arguments{
 \item{hamstr_bacon_fit}{}
 
-\item{new_depth}{}
+\item{depth}{}
 }
 \value{
 

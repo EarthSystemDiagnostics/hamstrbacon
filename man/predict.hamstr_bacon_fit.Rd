@@ -4,17 +4,17 @@
 \alias{predict.hamstr_bacon_fit}
 \title{Interpolate Age Models at Given Depths}
 \usage{
-\method{predict}{hamstr_bacon_fit}(object, new_depth = NULL)
+\method{predict}{hamstr_bacon_fit}(object, depth = NULL)
 }
 \arguments{
 \item{object}{}
 
-\item{new_depth}{}
+\item{depth}{}
 }
 \value{
 
 }
 \description{
 Method for generic function predict. Returns the posterior age
-models interpolated to new depths given in new_depth.
+models interpolated to new depths given in depth.
 }
