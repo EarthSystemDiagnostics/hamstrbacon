@@ -17,25 +17,30 @@
 #' @export
 #'
 #' @examples
-hamstr_bacon <- function(depth, obs_age, obs_err,
-                         thick = NULL,
+hamstr_bacon <- function(id = "default",
+                         depth,
+                         obs_age, obs_err,
+                         cc = 1,
+                         delta.R = 0,
+                         delta.STD = 0,
+                         thick = 5,
                          d.min = NULL, d.max = NULL,
                          d.by = NULL,
                          acc.shape = 1.5, acc.mean = 20,
-                         mem_strength = 10, mem.mean = 0.5,
+                         mem.strength = 10, mem.mean = 0.5,
                          plot.pdf = FALSE,
                          ask = FALSE,
                          suggest = TRUE, accept.suggestions = TRUE,
-                         cc = 1,
                          verbose = FALSE){
 
-  if(packageVersion("rbacon") < "2.5.2") stop("hamstr_bacon requires rbacon version 2.5.2 or higher")
+  if(packageVersion("rbacon") < "2.5.2")
+    stop("hamstr_bacon requires rbacon version 2.5.2 or higher")
 
   # check inputs
   if (any(length(depth) == 0, length(obs_age) == 0, length(obs_err)== 0))
     stop("depth, age, or obs_err are missing")
 
-  if (length(cc) > 1) stop("Argument cc can only be length 1")
+  #if (length(cc) > 1) stop("Argument cc can only be length 1")
 
 
   if (is.null(d.min)) d.min <- min(depth)
@@ -51,14 +56,18 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
   datfl <- tempfile(tmpdir = tmpdir)
 
   bacon_dat <- dplyr::tibble(
-      id = "test",
+      id = id,
       age = obs_age,
       error = obs_err,
-      depth = depth
+      depth = depth,
+      cc = cc,
+      delta.R = delta.R,
+      delta.STD = delta.STD
     )
 
-  utils::write.csv(bacon_dat, file = paste0(tmpdir, "\\", dirbase, ".csv"),
-              row.names = FALSE, quote = FALSE)
+  utils::write.csv(bacon_dat,
+                   file = normalizePath(paste0(tmpdir, "//", dirbase, ".csv")),
+                   row.names = FALSE, quote = FALSE)
 
 
 
@@ -95,6 +104,7 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
 
   # Call Bacon
 
+
   do.call(Bacon2, pars)
 
   par_list <- info[names(info) %in% names(pars)]
@@ -104,6 +114,8 @@ hamstr_bacon <- function(depth, obs_age, obs_err,
   # create output, add class attributes and return
   out <- list(pars = par_list, data = bacon_dat, info = info)
   class(out) <- append("hamstr_bacon_fit", class(out))
+
+  rbacon::Bacon.cleanup()
 
 
   return(out)
