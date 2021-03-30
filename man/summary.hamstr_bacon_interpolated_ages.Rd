@@ -7,8 +7,6 @@
 \method{summary}{hamstr_bacon_interpolated_ages}(object)
 }
 \arguments{
-\item{object}{}
-
 \item{type}{}
 }
 \value{

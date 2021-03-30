@@ -7,8 +7,6 @@
 interpolate_bacon_age_models(hamstr_bacon_fit, depth)
 }
 \arguments{
-\item{hamstr_bacon_fit}{}
-
 \item{depth}{}
 }
 \value{

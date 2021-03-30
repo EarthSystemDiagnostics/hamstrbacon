@@ -7,10 +7,6 @@
 plot_hamstr_bacon_fit(hamstr_bacon_fit, summarise = TRUE, n.iter = 1000)
 }
 \arguments{
-\item{hamstr_bacon_fit}{}
-
-\item{summarise}{}
-
 \item{n.iter}{}
 }
 \value{

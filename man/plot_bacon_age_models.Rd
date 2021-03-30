@@ -7,8 +7,6 @@
 plot_bacon_age_models(hamstr_bacon_fit, n.iter = 1000)
 }
 \arguments{
-\item{hamstr_bacon_fit}{}
-
 \item{n.iter}{}
 }
 \value{

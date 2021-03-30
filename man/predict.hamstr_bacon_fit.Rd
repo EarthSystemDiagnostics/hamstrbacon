@@ -7,8 +7,6 @@
 \method{predict}{hamstr_bacon_fit}(object, depth = NULL)
 }
 \arguments{
-\item{object}{}
-
 \item{depth}{}
 }
 \value{

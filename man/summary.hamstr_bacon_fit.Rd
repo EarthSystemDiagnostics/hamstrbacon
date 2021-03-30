@@ -7,8 +7,6 @@
 \method{summary}{hamstr_bacon_fit}(object)
 }
 \arguments{
-\item{object}{}
-
 \item{type}{}
 }
 \value{

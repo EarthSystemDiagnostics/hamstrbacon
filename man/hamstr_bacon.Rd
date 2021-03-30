@@ -5,22 +5,27 @@
 \title{A Wrapper for rbacon::Bacon}
 \usage{
 hamstr_bacon(
+  id = "default",
   depth,
   obs_age,
   obs_err,
-  thick = NULL,
+  cc = 1,
+  delta.R = 0,
+  delta.STD = 0,
+  thick = 5,
   d.min = NULL,
   d.max = NULL,
   d.by = NULL,
   acc.shape = 1.5,
   acc.mean = 20,
-  mem_strength = 10,
+  mem.strength = 10,
   mem.mean = 0.5,
+  ssize = 2000,
+  burnin = min(500, ssize),
   plot.pdf = FALSE,
   ask = FALSE,
   suggest = TRUE,
   accept.suggestions = TRUE,
-  cc = 1,
   verbose = FALSE
 )
 }
@@ -30,6 +35,13 @@ hamstr_bacon(
 \item{obs_age}{A vector of observed ages}
 
 \item{obs_err}{A vector of errors on the observed ages}
+
+\item{cc}{Calibration curve for C-14 dates: \code{cc=1} for IntCal20 (northern hemisphere terrestrial), \code{cc=2} for Marine20 (marine),
+\code{cc=3} for SHCal20 (southern hemisphere terrestrial). For dates that are already on the cal BP scale use \code{cc=0}.}
+
+\item{delta.R}{Mean of core-wide age offsets (e.g., regional marine offsets).}
+
+\item{delta.STD}{Error of core-wide age offsets (e.g., regional marine offsets).}
 
 \item{thick}{Bacon will divide the core into sections of equal thickness specified by thick (default \code{thick=5}).}
 
@@ -45,9 +57,17 @@ Its shape is set by acc.shape (default \code{acc.shape=1.5}; higher values resul
 \item{acc.mean}{The accumulation rate prior consists of a gamma distribution with two parameters. Its mean is set by acc.mean (default \code{acc.mean=20} yr/cm (or whatever age or depth units are chosen),
 which can be changed to, e.g., 5, 10 or 50 for different kinds of deposits). Multiple values can be given in case of hiatuses or boundaries, e.g., Bacon(hiatus.depths=23, acc.mean=c(5,20))}
 
+\item{mem.strength}{The prior for the memory (dependence of accumulation rate between neighbouring depths) is a beta distribution, which looks much like the gamma distribution.
+but its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.strength=10}
+(higher values result in more peaked shapes) allow for a large range of posterior memory values. Please note that the default memory prior has been updated from rbacon version 2.5.1 on, to repair a bug.}
+
 \item{mem.mean}{The prior for the memory is a beta distribution, which looks much like the gamma distribution but
 its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.mean=0.5}
 allow for a large range of posterior memory values. Please note that the default memory prior has been updated from rbacon version 2.5.1. on, to repair a bug.}
+
+\item{ssize}{The approximate amount of iterations to store at the end of the MCMC run. Default 2000; decrease for faster (but less reliable) runs or increase for cores where the MCMC mixing (panel at upper-left corner of age-model graph) appears problematic.}
+
+\item{burnin}{Amount of initial, likely sub-optimal MCMC iterations that will be removed.}
 
 \item{plot.pdf}{Produce a pdf file of the age-depth plot. Defaults to \code{plot.pdf=TRUE} after a Bacon run.}
 
@@ -59,9 +79,6 @@ allow for a large range of posterior memory values. Please note that the default
 Also, if the length of the core would cause too few or too many sections with the default settings, Bacon will suggest an alternative section thickness \code{thick}.
 Accept these suggested alternative settings by typing "y" (or "yes please" if you prefer to be polite), or leave as is by typing "n" (or anything else, really). To get rid of these suggestions, use \code{suggest=FALSE}.}
 
-\item{cc}{Calibration curve for C-14 dates: \code{cc=1} for IntCal20 (northern hemisphere terrestrial), \code{cc=2} for Marine20 (marine),
-\code{cc=3} for SHCal20 (southern hemisphere terrestrial). For dates that are already on the cal BP scale use \code{cc=0}.}
-
 \item{verbose}{Provide feedback on what is happening (default \code{verbose=TRUE}).}
 }
 \value{
@@ -69,7 +86,7 @@ Accept these suggested alternative settings by typing "y" (or "yes please" if yo
 }
 \description{
 Wraps the Bacon function from rbacon so that it can be used in a
-more typical "R" way. Returns age-depth models in a format to match hamstr 
-output. Not all Bacon functionality is accessible, for example hiatuses and 
+more typical "R" way. Returns age-depth models in a format to match hamstr
+output. Not all Bacon functionality is accessible, for example hiatuses and
 boundaries cannot be used.
 }
