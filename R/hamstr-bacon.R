@@ -28,6 +28,7 @@ hamstr_bacon <- function(id = "default",
                          d.by = NULL,
                          acc.shape = 1.5, acc.mean = 20,
                          mem.strength = 10, mem.mean = 0.5,
+                         hiatus.depths = NA, hiatus.max = 10000,
                          ssize = 2000,
                          burnin = min(500, ssize),
                          plot.pdf = FALSE,
@@ -184,9 +185,24 @@ return_bacon_age_mods <- function(hamstr_bacon_fit){
 #' @keywords internal
 interpolate_bacon_age_models <- function(hamstr_bacon_fit, depth){
 
-  if (is.null(depth)) {
-    depth <- hamstr_bacon_fit$data$depth
-  }
+  if (is.numeric(depth) == FALSE) {
+
+    depth <- match.arg(depth, choices = c("modelled", "data"))
+
+    if (depth == "modelled") {
+
+      # get posterior age models
+      out <- return_bacon_age_mods(hamstr_bacon_fit)
+
+      return(out)
+
+    } else if (depth == "data") {
+
+      depth <- hamstr_bacon_fit$data$depth
+
+    }
+
+    }
 
   # get posterior age models
   pst_age <- return_bacon_age_mods(hamstr_bacon_fit)
@@ -408,7 +424,7 @@ plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
 #' @examples
 #' @export
 #' @method predict hamstr_bacon_fit
-predict.hamstr_bacon_fit <- function(object, depth = NULL){
+predict.hamstr_bacon_fit <- function(object, depth = "modelled"){
 
   interpolate_bacon_age_models(object, depth)
 

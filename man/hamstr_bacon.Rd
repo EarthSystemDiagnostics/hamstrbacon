@@ -20,6 +20,8 @@ hamstr_bacon(
   acc.mean = 20,
   mem.strength = 10,
   mem.mean = 0.5,
+  hiatus.depths = NA,
+  hiatus.max = 10000,
   ssize = 2000,
   burnin = min(500, ssize),
   plot.pdf = FALSE,
@@ -64,6 +66,11 @@ but its values are always between 0 (no assumed memory) and 1 (100\% memory). It
 \item{mem.mean}{The prior for the memory is a beta distribution, which looks much like the gamma distribution but
 its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.mean=0.5}
 allow for a large range of posterior memory values. Please note that the default memory prior has been updated from rbacon version 2.5.1. on, to repair a bug.}
+
+\item{hiatus.depths}{The assumed depths for any hiatus should be provided as, e.g.,
+\code{hiatus.depths=20} for one at 20cm depth, and \code{hiatus.depths=c(20,40)} for two hiatuses at 20 and 40 cm depth.}
+
+\item{hiatus.max}{The prior for the maximum length of the hiatus. Hiatus length is a uniform distribution, with equal probabilities between 0 and \code{hiatus.max} yr (or whatever other \code{age.unit} is chosen).}
 
 \item{ssize}{The approximate amount of iterations to store at the end of the MCMC run. Default 2000; decrease for faster (but less reliable) runs or increase for cores where the MCMC mixing (panel at upper-left corner of age-model graph) appears problematic.}
 

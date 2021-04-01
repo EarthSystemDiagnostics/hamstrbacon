@@ -7,8 +7,6 @@
 \method{summary}{hamstr_interpolated_ages}(object, type = "age_models")
 }
 \arguments{
-\item{object}{}
-
 \item{type}{}
 }
 \value{

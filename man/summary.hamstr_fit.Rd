@@ -7,8 +7,6 @@
 \method{summary}{hamstr_fit}(object, type = "age_models")
 }
 \arguments{
-\item{object}{}
-
 \item{type}{}
 }
 \value{

@@ -9,7 +9,7 @@ interpolate_age_models(hamstr_fit, depth)
 \arguments{
 \item{hamstr_fit}{The object returned from \code{stan_hamstr}.}
 
-\item{depth}{a vector of depths at which to interpolate the age models. 
+\item{depth}{a vector of depths at which to interpolate the age models.
 If left NULL, the depths of the age control points are used.}
 }
 \value{
@@ -29,7 +29,7 @@ fit <- hamstr(
   mem_mean = 0.5, mem_strength= 10,
   inflate_errors = 0,
   iter = 2000, chains = 3)
-  
+
 interpolate.age.models(fit, depth = seq(1000, 15000, by = 1000))
 }
 

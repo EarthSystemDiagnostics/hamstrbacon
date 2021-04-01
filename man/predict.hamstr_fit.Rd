@@ -7,10 +7,9 @@
 \method{predict}{hamstr_fit}(object, depth = "modelled")
 }
 \arguments{
-\item{object}{}
-
-\item{depth}{a vector of depths at which to interpolate the age models. 
-If left NULL, the depths of the age control points are used.}
+\item{depth}{Defaults to "modelled", which returns the modelled depths.
+"data" returns age models at the depths of the observations,
+or a numerical vector to specify depths}
 }
 \value{
 

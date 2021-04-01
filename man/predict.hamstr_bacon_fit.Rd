@@ -4,7 +4,7 @@
 \alias{predict.hamstr_bacon_fit}
 \title{Interpolate Age Models at Given Depths}
 \usage{
-\method{predict}{hamstr_bacon_fit}(object, depth = NULL)
+\method{predict}{hamstr_bacon_fit}(object, depth = "modelled")
 }
 \arguments{
 \item{depth}{}
