@@ -68,8 +68,13 @@ hamstr_bacon <- function(id = "default",
       delta.STD = delta.STD
     )
 
+  
+  #fl <- suppressWarnings(normalizePath(paste0(tmpdir, "//", dirbase, ".csv")))
+  
+  fl <- paste0(tmpdir, "//", dirbase, ".csv")
+  
   utils::write.csv(bacon_dat,
-                   file = normalizePath(paste0(tmpdir, "//", dirbase, ".csv")),
+                   file = fl,
                    row.names = FALSE, quote = FALSE)
 
 

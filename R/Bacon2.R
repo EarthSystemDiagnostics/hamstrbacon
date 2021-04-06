@@ -307,7 +307,7 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
 
   # detach internal rbacon functions
   detach("rbacon_all")
-
+  
   # cleanup global
   #rm(info)
 }
