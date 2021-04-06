@@ -106,8 +106,9 @@ AgeModCoverage <- function(hamstr_fit, dat){
 ### Compare hamstr and Bacon
 
 CompareHamBac <- function(top, bottom, d_depth, gamma_shape,
-                          gamma_mean, gamma_breaks,
+                          gamma_mean, gamma_breaks = NULL,
                           ar_coefs, acc_mean = mean(gamma_mean),
+                          mem_mean, mem_strength, acc_shape,
                           sampling_interval, sample_gap = NULL,
                           K_hamstr, K_bacon,
                           inflate_errors = FALSE){
@@ -142,13 +143,16 @@ CompareHamBac <- function(top, bottom, d_depth, gamma_shape,
                      obs_err = ad1_samp$age.14C.cal.se,
                      top_depth = min(ad1$depth), bottom_depth = max(ad1$depth),
                   K = K_hamstr,
+                  acc_shape = acc_shape,
+                  mem_mean = mem_mean, mem_strength = mem_strength,
                   inflate_errors = inflate_errors,
                   chains = 3, cores = 3)
 
 
   bac1 <- hamstr_bacon(depth = ad1_samp$depth, obs_age = ad1_samp$rad_age_hat,
                        obs_err = ad1_samp$rad_age_sigma,
-                       acc.mean = acc_mean, acc.shape = 1.5,
+                       acc.mean = acc_mean, acc.shape = acc_shape,
+                       mem.mean = mem_mean, mem.strength = mem_strength,
                        d.min = min(ad1$depth), d.max = max(ad1$depth),
                        thick = diff(range(ad1$depth)) / K_bacon,
                        suggest = "FALSE")
@@ -252,12 +256,44 @@ CompareMedAgeMod <- function(sim){
 # hbc2 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
 #                       sampling_interval = 1)
 
-hbc3 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5,
+hbc3a <- CompareHamBac(100, 400, 1, gamma_shape = 1.5,
                       gamma_mean = 40,
-                      ar_coefs = 0.7,
+                      ar_coefs = 0.5,
                       sampling_interval = 12,
                       sample_gap = c(201, 349),
-                      K_hamstr = hamstr:::optimal_K(100, 10), K_bacon = 100)
+                      K_hamstr = hamstr:::optimal_K(100, 10),
+                      K_bacon = 100,
+                      acc_shape = 1.5,
+                      mem_mean = 0.5, mem_strength = 10)
+
+hbc3b <- CompareHamBac(100, 400, 1, gamma_shape = 1.5,
+                      gamma_mean = 40,
+                      ar_coefs = 0.5,
+                      sampling_interval = 12,
+                      sample_gap = c(201, 349),
+                      K_hamstr = hamstr:::optimal_K(100, 10),
+                      K_bacon = 100,
+                      acc_shape = 1.5,
+                      mem_mean = 0.8, mem_strength = 10)
+
+hbc3c <- CompareHamBac(100, 400, 1, gamma_shape = 1.5,
+                      gamma_mean = 40,
+                      ar_coefs = 0.5,
+                      sampling_interval = 12,
+                      sample_gap = c(201, 349),
+                      K_hamstr = hamstr:::optimal_K(100, 10),
+                      K_bacon = 100,
+                      acc_shape = 1.5,
+                      mem_mean = 0.2, mem_strength = 10)
+
+
+GetCoverages(hbc3a)
+GetCoverages(hbc3b)
+GetCoverages(hbc3c)
+
+PlotHamstrBacon(hbc3a)
+PlotHamstrBacon(hbc3b)
+PlotHamstrBacon(hbc3c)
 
 hbc4 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5,
                       gamma_mean =  c(20, 90), gamma_breaks = 250,

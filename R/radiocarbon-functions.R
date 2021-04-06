@@ -48,8 +48,8 @@ calibrate_14C_age <- function(dat, age.14C = "age.14C",
   return.type <- match.arg(return.type, choices = c("data.frame", "list"))
   cal_curve <-
     match.arg(cal_curve,
-              choices = c("intcal13", "shcal13", "marine13",
-                          "intcal20", "marine20", "shcal20",
+              choices = c("intcal20", "marine20", "shcal20",
+                          "intcal13", "marine13", "shcal13",
                           "normal"))
 
   if (is.null(offset)){
@@ -79,8 +79,8 @@ calibrate_14C_age <- function(dat, age.14C = "age.14C",
       # suppress warnings about modes as mode not used anyway
       suppressWarnings(
         SummariseEmpiricalPDF(x[[1]]$ageGrid, x[[1]]$densities)["median"]
-        )
-      } else {NA}
+      )
+    } else {NA}
   })
 
   dat$age.14C.cal.se <- sapply(cal.ages, function(x){
@@ -88,8 +88,8 @@ calibrate_14C_age <- function(dat, age.14C = "age.14C",
       # suppress warnings about modes as mode not used anyway
       suppressWarnings(
         SummariseEmpiricalPDF(x[[1]]$ageGrid, x[[1]]$densities)["sd"]
-        )
-      } else {NA}
+      )
+    } else {NA}
   })
 
   if (return.type == "data.frame"){
@@ -170,8 +170,9 @@ SummariseEmpiricalPDF <- function(x, p){
 #' compare_14C_PDF(age.14C = c(1000, 4000), age.14C.se = c(100, 150),
 #'  cal_curve = "intcal13", return.type = "plot")
 
-compare_14C_PDF <- function(age.14C, age.14C.se, cal_curve = "intcal20", t_df = 6,
-                             return.type = c("plot", "list")){
+compare_14C_PDF <- function(age.14C, age.14C.se,
+                            cal_curve = "intcal20", t_df = 6,
+                            return.type = c("plot", "list")){
 
   dt_ls <- function(x, dat=1, mu=0, sigma=1) 1/sigma * stats::dt((x - mu)/sigma, dat)
 
@@ -183,8 +184,8 @@ compare_14C_PDF <- function(age.14C, age.14C.se, cal_curve = "intcal20", t_df = 
 
   cal_curve <-
     match.arg(cal_curve,
-              choices = c("intcal13", "shcal13", "marine13",
-                          "intcal20", "marine20", "shcal20",
+              choices = c("intcal20", "marine20", "shcal20",
+                          "intcal13", "marine13", "shcal13",
                           "normal"))
 
   calib <- calibrate_14C_age(cal.dat,
@@ -202,7 +203,7 @@ compare_14C_PDF <- function(age.14C, age.14C.se, cal_curve = "intcal20", t_df = 
     x <- cal.ages[[i]]
     if (is.na(x)==FALSE){
       data.frame(age = x[[1]]$ageGrid, density = x[[1]]$densities, .id = i)
-      }else{
+    }else{
       data.frame(age = 0, density = 0, .id = i)
     }
   })
