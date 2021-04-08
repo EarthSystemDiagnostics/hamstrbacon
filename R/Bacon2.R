@@ -13,7 +13,7 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
                     remove = FALSE, BCAD = FALSE, ssize = 2000, th0 = c(),
                     burnin = min(500, ssize), MinAge = c(), MaxAge = c(), MinYr = MinAge, MaxYr = MaxAge,
                     cutoff = 0.01, plot.pdf = TRUE, dark = 1, date.res = 100,
-                    age.res = 200, yr.res = age.res, close.connections = FALSE,
+                    age.res = 200, yr.res = age.res, close.connections = TRUE,
                     verbose = TRUE, suppress.plots = TRUE, ...)
 {
 

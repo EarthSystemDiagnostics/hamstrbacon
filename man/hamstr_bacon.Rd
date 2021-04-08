@@ -14,8 +14,6 @@ hamstr_bacon(
   d.max = NA,
   d.by = NULL,
   seed = NA,
-  depth.unit = "cm",
-  age.unit = "yr",
   acc.shape = 1.5,
   acc.mean = 20,
   mem.strength = 10,
@@ -39,7 +37,6 @@ hamstr_bacon(
   suggest = TRUE,
   accept.suggestions = TRUE,
   reswarn = c(10, 200),
-  remember = FALSE,
   ask = FALSE,
   slump = c(),
   remove = FALSE,
@@ -49,7 +46,7 @@ hamstr_bacon(
   MinAge = c(),
   MaxAge = c(),
   plot.pdf = FALSE,
-  close.connections = FALSE,
+  close.connections = TRUE,
   verbose = FALSE,
   suppress.plots = TRUE
 )
@@ -70,10 +67,6 @@ hamstr_bacon(
 \item{d.by}{Depth intervals at which ages are calculated. Defaults to \code{d.by=1}.}
 
 \item{seed}{Seed used for C++ executions. If it is not assigned (\code{seed=NA}; default) then the seed is set by system.}
-
-\item{depth.unit}{Units of the depths. Defaults to \code{depth.unit="cm"}.}
-
-\item{age.unit}{Units of the ages. Defaults to \code{age.unit="yr"}.}
 
 \item{acc.shape}{The prior for the accumulation rate consists of a gamma distribution with two parameters.
 Its shape is set by acc.shape (default \code{acc.shape=1.5}; higher values result in more peaked shapes).}
@@ -141,9 +134,6 @@ Accept these suggested alternative settings by typing "y" (or "yes please" if yo
 \code{reswarn=c(10,200)}). Too few sections could lead to an `elbowy' model while with too many sections the modelling process can get lost,
  resulting in age-models far away from the dated depths.}
 
-\item{remember}{Bacon will try to remember which settings you have applied to your cores (default \code{remember=TRUE}). If you run into inconsistencies or other problems,
-try running your core again with \code{remember=FALSE}, or, start cleanly by typing \code{Bacon.cleanup()}.}
-
 \item{ask}{By default Bacon will ask you to confirm that you want to run the core with the provided settings. Disable this using \code{ask=FALSE} (e.g., for batch runs).}
 
 \item{slump}{Upper and lower depths of any sections of assumed abrupt accumulation, that require excising before age-modelling (and adding after age-modelling). Requires pairs of depths, e.g., \code{slump=c(10,15,60,67)} for slumps at 67-60 and 15-10 cm core depth.}
@@ -172,6 +162,19 @@ try running your core again with \code{remember=FALSE}, or, start cleanly by typ
 \description{
 Wraps the Bacon function from rbacon so that it can be used in a
 more typical "R" way. Returns age-depth models in a format to match hamstr
-output. Not all Bacon functionality is accessible, for example hiatuses and
-boundaries cannot be used.
+output. Most Bacon functionality is accessible, for example hiatuses and
+boundaries, different calibration curves, postbomb curves.
+}
+\examples{
+\dontrun{
+hb1 <- hamstr_bacon(id = "sdf", 
+                    depth = MSB2K$depth,
+                    obs_age = MSB2K$age,
+                    obs_err = MSB2K$error 
+                    )
+
+plot(hb1)
+predict(hb1)
+summary(hb1)
+}
 }

@@ -10,31 +10,24 @@
 #' @param obs_err A vector of errors on the observed ages
 #' @description Wraps the Bacon function from rbacon so that it can be used in a
 #' more typical "R" way. Returns age-depth models in a format to match hamstr
-#' output. Not all Bacon functionality is accessible, for example hiatuses and
-#' boundaries cannot be used.
+#' output. Most Bacon functionality is accessible, for example hiatuses and
+#' boundaries, different calibration curves, postbomb curves.
 #' @inheritParams rbacon::Bacon
 #' @return
 #' @export
 #'
 #' @examples
-# (id = "default",
-#  depth,
-#  obs_age, obs_err,
-#  cc = 1,
-#  delta.R = 0,
-#  delta.STD = 0,
-#  thick = 5,
-#  d.min = NULL, d.max = NULL,
-#  d.by = NULL,
-#  acc.shape = 1.5, acc.mean = 20,
-#  mem.strength = 10, mem.mean = 0.5,
-#  hiatus.depths = NA, hiatus.max = 10000,
-#  ssize = 2000,
-#  burnin = min(500, ssize),
-#  plot.pdf = FALSE,
-#  ask = FALSE,
-#  suggest = TRUE, accept.suggestions = TRUE,
-#  verbose = FALSE)
+#' \dontrun{
+#' hb1 <- hamstr_bacon(id = "sdf", 
+#'                     depth = MSB2K$depth,
+#'                     obs_age = MSB2K$age,
+#'                     obs_err = MSB2K$error 
+#'                     )
+#' 
+#' plot(hb1)
+#' predict(hb1)
+#' summary(hb1)
+#' }
 hamstr_bacon <- function(
   id = "default",
   depth,
@@ -42,22 +35,23 @@ hamstr_bacon <- function(
   thick = 5, 
   d.min = NA, d.max = NA, 
   d.by = NULL,
-  seed = NA, depth.unit = "cm",
-  age.unit = "yr", acc.shape = 1.5,
-  acc.mean = 20, mem.strength = 10, mem.mean = 0.5, boundary = NA,
-  hiatus.depths = NA, hiatus.max = 10000, add = c(), 
+  seed = NA, 
+  acc.shape = 1.5,  acc.mean = 20,
+  mem.strength = 10, mem.mean = 0.5,
+  boundary = NA,
+  hiatus.depths = NA, hiatus.max = 10000,
+  add = c(), 
   cc = 1, cc1 = "IntCal20", cc2 = "Marine20", cc3 = "SHCal20",
   cc4 = "ConstCal", ccdir = "", postbomb = 0, delta.R = 0,
   delta.STD = 0, t.a = 3, t.b = 4, normal = FALSE, 
   suggest = TRUE, accept.suggestions = TRUE,
- reswarn = c(10, 200),
-  remember = FALSE,
+  reswarn = c(10, 200),
   ask = FALSE, 
   slump = c(),
   remove = FALSE, ssize = 2000, th0 = c(),
   burnin = min(500, ssize), MinAge = c(), MaxAge = c(),
   plot.pdf = FALSE, 
-  close.connections = FALSE,
+  close.connections = TRUE,
   verbose = FALSE, suppress.plots = TRUE
 ){
   if(packageVersion("rbacon") < "2.5.2")
@@ -105,6 +99,9 @@ hamstr_bacon <- function(
 
   # capture the passed arguments
   pars <- c(as.list(environment()))
+  
+  # hard code remember
+  pars$remember <- FALSE
 
   # set name and location for output
   pars$core = dirbase
