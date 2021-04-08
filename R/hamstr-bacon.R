@@ -17,25 +17,49 @@
 #' @export
 #'
 #' @examples
-hamstr_bacon <- function(id = "default",
-                         depth,
-                         obs_age, obs_err,
-                         cc = 1,
-                         delta.R = 0,
-                         delta.STD = 0,
-                         thick = 5,
-                         d.min = NULL, d.max = NULL,
-                         d.by = NULL,
-                         acc.shape = 1.5, acc.mean = 20,
-                         mem.strength = 10, mem.mean = 0.5,
-                         hiatus.depths = NA, hiatus.max = 10000,
-                         ssize = 2000,
-                         burnin = min(500, ssize),
-                         plot.pdf = FALSE,
-                         ask = FALSE,
-                         suggest = TRUE, accept.suggestions = TRUE,
-                         verbose = FALSE){
-
+# (id = "default",
+#  depth,
+#  obs_age, obs_err,
+#  cc = 1,
+#  delta.R = 0,
+#  delta.STD = 0,
+#  thick = 5,
+#  d.min = NULL, d.max = NULL,
+#  d.by = NULL,
+#  acc.shape = 1.5, acc.mean = 20,
+#  mem.strength = 10, mem.mean = 0.5,
+#  hiatus.depths = NA, hiatus.max = 10000,
+#  ssize = 2000,
+#  burnin = min(500, ssize),
+#  plot.pdf = FALSE,
+#  ask = FALSE,
+#  suggest = TRUE, accept.suggestions = TRUE,
+#  verbose = FALSE)
+hamstr_bacon <- function(
+  id = "default",
+  depth,
+  obs_age, obs_err,
+  thick = 5, 
+  d.min = NA, d.max = NA, 
+  d.by = NULL,
+  seed = NA, depth.unit = "cm",
+  age.unit = "yr", acc.shape = 1.5,
+  acc.mean = 20, mem.strength = 10, mem.mean = 0.5, boundary = NA,
+  hiatus.depths = NA, hiatus.max = 10000, add = c(), 
+  cc = 1, cc1 = "IntCal20", cc2 = "Marine20", cc3 = "SHCal20",
+  cc4 = "ConstCal", ccdir = "", postbomb = 0, delta.R = 0,
+  delta.STD = 0, t.a = 3, t.b = 4, normal = FALSE, 
+  suggest = TRUE, accept.suggestions = TRUE,
+ reswarn = c(10, 200),
+  remember = FALSE,
+  ask = FALSE, 
+  slump = c(),
+  remove = FALSE, ssize = 2000, th0 = c(),
+  burnin = min(500, ssize), MinAge = c(), MaxAge = c(),
+  plot.pdf = FALSE, 
+  close.connections = FALSE,
+  verbose = FALSE, suppress.plots = TRUE
+){
   if(packageVersion("rbacon") < "2.5.2")
     stop("hamstr_bacon requires rbacon version 2.5.2 or higher")
 
@@ -46,8 +70,8 @@ hamstr_bacon <- function(id = "default",
   #if (length(cc) > 1) stop("Argument cc can only be length 1")
 
 
-  if (is.null(d.min)) d.min <- min(depth)
-  if (is.null(d.max)) d.max <- max(depth)
+  if (is.na(d.min)) d.min <- min(depth)
+  if (is.na(d.max)) d.max <- max(depth)
 
   # use temp directory to store Bacon input and output
   tmpdir <- tempdir()

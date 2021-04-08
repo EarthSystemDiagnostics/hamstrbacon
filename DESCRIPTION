@@ -41,5 +41,6 @@ RoxygenNote: 7.1.1
 Suggests: 
     knitr,
     rmarkdown,
-    rbacon (>= 2.5.2)
+    rbacon (>= 2.5.2),
+    testthat
 VignetteBuilder: knitr
