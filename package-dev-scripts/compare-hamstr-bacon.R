@@ -5,20 +5,9 @@ library(tidyverse)
 
 MSB2K_cal <- hamstr::calibrate_14C_age(MSB2K, age.14C = "age", age.14C.se = "error")
 
-ham1 <- hamstr(depth = MSB2K_cal$depth, obs_age = MSB2K_cal$age.14C.cal, obs_err = MSB2K_cal$age.14C.cal.se)
-
-
-hambac1 <- hamstr_bacon(depth = MSB2K$depth, obs_age = MSB2K$age, obs_err = MSB2K$error, thick = 5, d.min = 0,
-                        acc.mean = 30, ask = FALSE, suggest = "accept")
-
-
-plot(ham1, type = "age_models")
-plot(hambac1)
-
 
 ###
 # simulate correlated gamma?
-
 
 SimulateAgeDepth <- function(top, bottom, d_depth, gamma_shape,
                              gamma_mean, gamma_breaks = NULL,
@@ -63,7 +52,7 @@ tmp <- SimulateAgeDepth(top = 100, bottom = 700, d_depth = 1.1,
                         gamma_shape = 1.5,
                         gamma_mean = c(50, 10, 50), gamma_breaks = c(200, 600),
                         ar1 = 0.7) %>%
-  tbl_df()
+  as_tibble()
 
 tmp %>%
   ggplot(aes(depth, age)) +
@@ -105,20 +94,24 @@ AgeModCoverage <- function(hamstr_fit, dat){
 
 ### Compare hamstr and Bacon
 
-CompareHamBac <- function(top, bottom, d_depth, gamma_shape,
-                          gamma_mean, gamma_breaks = NULL,
-                          ar_coefs, acc_mean = mean(gamma_mean),
+CompareHamBac <- function(top, bottom, d_depth, sim_gamma_shape,
+                          sim_gamma_mean, gamma_breaks = NULL,
+                          ar_coefs, acc_mean = mean(sim_gamma_mean),
                           mem_mean, mem_strength, acc_shape,
                           sampling_interval, sample_gap = NULL,
                           K_hamstr, K_bacon,
                           inflate_errors = FALSE){
   #browser()
   ad1 <- SimulateAgeDepth(top = top, bottom = bottom, d_depth = d_depth,
-                          gamma_shape = gamma_shape,
-                          gamma_mean = gamma_mean, gamma_breaks = gamma_breaks,
-
+                          gamma_shape = sim_gamma_shape,
+                          gamma_mean = sim_gamma_mean,
+                          gamma_breaks = gamma_breaks,
                           ar1 = ar_coefs) %>%
     tbl_df()
+  
+  
+  sim_pars <- c(sim_gamma_shape = sim_gamma_shape, 
+                sim_gamma_mean = sim_gamma_mean, ar1 = ar_coefs)
 
   ad1 <- ad1 %>%
     #rowwise() %>%
@@ -157,8 +150,8 @@ CompareHamBac <- function(top, bottom, d_depth, gamma_shape,
                        thick = diff(range(ad1$depth)) / K_bacon,
                        suggest = "FALSE")
 
-  return(list(
-    sim_core = ad1, hamstr = ham1, bacon = bac1
+  return(list(sim_pars = sim_pars, 
+              sim_core = ad1, hamstr = ham1, bacon = bac1
   ))
 }
 
@@ -256,18 +249,20 @@ CompareMedAgeMod <- function(sim){
 # hbc2 <- CompareHamBac(100, 400, 1, gamma_shape = 1.5, gamma_mean = 20, ar_coefs = 0.7,
 #                       sampling_interval = 1)
 
-hbc3a <- CompareHamBac(100, 400, 1, gamma_shape = 1.5,
-                      gamma_mean = 40,
+hbc3a <- CompareHamBac(100, 400, 1, sim_gamma_shape = 1.5,
+                      sim_gamma_mean = 80,
                       ar_coefs = 0.5,
                       sampling_interval = 12,
                       sample_gap = c(201, 349),
-                      K_hamstr = hamstr:::optimal_K(100, 10),
+                      #K_hamstr = hamstr:::optimal_K(100, 10),
+                      K_hamstr = 100,
                       K_bacon = 100,
                       acc_shape = 1.5,
                       mem_mean = 0.5, mem_strength = 10)
 
-hbc3b <- CompareHamBac(100, 400, 1, gamma_shape = 1.5,
-                      gamma_mean = 40,
+hbc3b <- CompareHamBac(100, 400, 1, 
+                       sim_gamma_shape = 1.5,
+                       sim_gamma_mean = 40,
                       ar_coefs = 0.5,
                       sampling_interval = 12,
                       sample_gap = c(201, 349),
