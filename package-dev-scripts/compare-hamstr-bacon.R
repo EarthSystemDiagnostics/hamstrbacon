@@ -92,19 +92,28 @@ SimulateCarbonDates <- function(age_depth_obj, sampling_interval, cal_curve,
   
   return(list(obs = obs,
               core = age_depth_obj$core,
-              pars = pars[-1]))
+              pars = pars))
   
 }
 
 
 ad.obj <- SimulateAgeDepth(top = 100, bottom = 700, d_depth = 1.1,
                         gamma_shape = 1.5,
-                        gamma_mean = c(50, 10, 50), gamma_breaks = c(200, 600),
+                        gamma_mean = c(30),
                         ar1 = 0.7)
 
 tmp <- SimulateCarbonDates(ad.obj, sampling_interval = 12, sample_gap = c(201, 349),
                     cal_curve = "intcal20")
 
+tst1 <- CompareHamBac(tmp, 
+                       K_hamstr = 100,
+                       K_bacon = 100,
+                       acc_shape = 1.5,
+                      acc_mean = mean(tmp$pars$age_depth_obj$pars$gamma_mean),
+                       mem_mean = 0.5, mem_strength = 10)
+
+PlotHamstrBacon(tst1)
+GetCoverages(tst1)
 
 ## should be comparing coverage of simulated "true" ages not the data points
 ## as data might have extra error added
@@ -142,16 +151,17 @@ AgeModCoverage <- function(hamstr_fit, dat){
 ### Compare hamstr and Bacon
 
 CompareHamBac <- function(age_depth_obj,
-                          ar_coefs, acc_mean = mean(sim_gamma_mean),
+                          ar_coefs, acc_mean,
                           mem_mean, mem_strength, acc_shape,
                           K_hamstr, K_bacon,
                           inflate_errors = FALSE){
  
-  dat <- age_depth_obj$obs
+ 
   
-  ham1 <-  hamstr(depth = dat$depth, obs_age = dat$age.14C.cal,
-                     obs_err = dat$age.14C.cal.se,
-                     top_depth = min(ad1$depth), bottom_depth = max(ad1$depth),
+  ham1 <-  hamstr(depth = age_depth_obj$obs$depth, obs_age = age_depth_obj$obs$age.14C.cal,
+                     obs_err = age_depth_obj$obs$age.14C.cal.se,
+                     top_depth = min(age_depth_obj$core$depth),
+                  bottom_depth = max(age_depth_obj$core$depth),
                   K = K_hamstr,
                   acc_shape = acc_shape,
                   mem_mean = mem_mean, mem_strength = mem_strength,
@@ -159,12 +169,14 @@ CompareHamBac <- function(age_depth_obj,
                   chains = 3, cores = 3)
 
 
-  bac1 <- hamstr_bacon(depth = dat$depth, obs_age = dat$age_14C_hat,
-                       obs_err = dat$age_14C_sigma,
+  bac1 <- hamstr_bacon(depth = age_depth_obj$obs$depth,
+                       obs_age = age_depth_obj$obs$age_14C_hat,
+                       obs_err = age_depth_obj$obs$age_14C_sigma,
                        acc.mean = acc_mean, acc.shape = acc_shape,
                        mem.mean = mem_mean, mem.strength = mem_strength,
-                       d.min = min(ad1$depth), d.max = max(ad1$depth),
-                       thick = diff(range(ad1$depth)) / K_bacon,
+                       d.min = min(age_depth_obj$core$depth),
+                       d.max = max(age_depth_obj$core$depth),
+                       thick = diff(range(age_depth_obj$core$depth)) / K_bacon,
                        suggest = "FALSE")
 
   return(list(age_depth_obj = age_depth_obj,
@@ -173,15 +185,17 @@ CompareHamBac <- function(age_depth_obj,
 }
 
 
+
 GetCoverages <- function(sim){
 
-  hamstr = AgeModCoverage(sim$hamstr, sim$sim_core)
-  bacon = AgeModCoverage(sim$bacon, sim$sim_core)
+  hamstr = AgeModCoverage(sim$hamstr, sim$age_depth_obj$core)
+  bacon = AgeModCoverage(sim$bacon, sim$age_depth_obj$core)
 
   bind_rows(hamstr=hamstr, bacon=bacon, .id = "method")
 
   }
 
+GetCoverages(tst1)
 
 PlotHamstrBacon <- function(sim){
 
@@ -230,7 +244,7 @@ PlotHamstrBacon <- function(sim){
                            colour = "green") +
    ggplot2::geom_point(data = obs_ages, ggplot2::aes(y = age),
                        colour = "green") +
-    geom_line(data = sim$sim_core, aes(x = depth, y = age, colour = "Simulated"), lwd = 1)+
+    geom_line(data = sim$age_depth_obj$core, aes(x = depth, y = age, colour = "Simulated"), lwd = 1)+
 
     scale_fill_manual("", values = pal) +
     scale_color_manual("", values = pal)
