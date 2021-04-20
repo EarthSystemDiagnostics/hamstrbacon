@@ -12,6 +12,9 @@ MSB2K_cal <- hamstr::calibrate_14C_age(MSB2K, age.14C = "age", age.14C.se = "err
 SimulateAgeDepth <- function(top, bottom, d_depth, gamma_shape,
                              gamma_mean, gamma_breaks = NULL,
                              ar1){
+  
+  pars <- c(as.list(environment()))
+  
 
   depth <- seq(top, bottom, by = d_depth)
 
@@ -43,20 +46,64 @@ SimulateAgeDepth <- function(top, bottom, d_depth, gamma_shape,
 
   age <- cumsum(c(min.age, acc.rates_yr_cm) * d_depth)
 
-  data.frame(depth = depth, age = age, acc.rates_yr_cm = c(acc.rates_yr_cm, NA))
-}
+  
+  core <- dplyr::tibble(depth = depth, age = age, acc.rates_yr_cm = c(acc.rates_yr_cm, NA))
+  
+  return(list(pars = pars, core = core))
+
+  }
 
 
 
 tmp <- SimulateAgeDepth(top = 100, bottom = 700, d_depth = 1.1,
                         gamma_shape = 1.5,
                         gamma_mean = c(50, 10, 50), gamma_breaks = c(200, 600),
-                        ar1 = 0.7) %>%
-  as_tibble()
+                        ar1 = 0.7) 
 
-tmp %>%
+tmp$core %>%
   ggplot(aes(depth, age)) +
   geom_line()
+
+
+
+SimulateCarbonDates <- function(age_depth_obj, sampling_interval, cal_curve,
+                                sample_gap = NULL){
+  
+  pars <- c(as.list(environment()))
+  
+  obs <- age_depth_obj$core %>%
+    mutate(sampled = (rank(depth) %% sampling_interval == 0)) %>%
+    filter(sampled) %>% 
+    mutate(age_14C = Bchron::unCalibrate(age, type = "ages")) %>%
+    mutate(age_14C_sigma = 20 + age * 0.02) %>% 
+    mutate(age_14C_hat = rnorm(n(), age_14C, age_14C_sigma))
+  
+  if (is.null(sample_gap) == FALSE){
+    obs <- obs %>%
+      filter(depth < sample_gap[1] | depth > sample_gap[2])
+  }
+  
+  obs <- obs %>%
+    select(depth, age_14C_hat, age_14C_sigma) %>% 
+    calibrate_14C_age(.,
+                      "age_14C_hat", "age_14C_sigma",
+                      cal_curve = cal_curve)
+  
+  
+  return(list(obs = obs,
+              core = age_depth_obj$core,
+              pars = pars[-1]))
+  
+}
+
+
+ad.obj <- SimulateAgeDepth(top = 100, bottom = 700, d_depth = 1.1,
+                        gamma_shape = 1.5,
+                        gamma_mean = c(50, 10, 50), gamma_breaks = c(200, 600),
+                        ar1 = 0.7)
+
+tmp <- SimulateCarbonDates(ad.obj, sampling_interval = 12, sample_gap = c(201, 349),
+                    cal_curve = "intcal20")
 
 
 ## should be comparing coverage of simulated "true" ages not the data points
@@ -94,46 +141,16 @@ AgeModCoverage <- function(hamstr_fit, dat){
 
 ### Compare hamstr and Bacon
 
-CompareHamBac <- function(top, bottom, d_depth, sim_gamma_shape,
-                          sim_gamma_mean, gamma_breaks = NULL,
+CompareHamBac <- function(age_depth_obj,
                           ar_coefs, acc_mean = mean(sim_gamma_mean),
                           mem_mean, mem_strength, acc_shape,
-                          sampling_interval, sample_gap = NULL,
                           K_hamstr, K_bacon,
                           inflate_errors = FALSE){
-  #browser()
-  ad1 <- SimulateAgeDepth(top = top, bottom = bottom, d_depth = d_depth,
-                          gamma_shape = sim_gamma_shape,
-                          gamma_mean = sim_gamma_mean,
-                          gamma_breaks = gamma_breaks,
-                          ar1 = ar_coefs) %>%
-    tbl_df()
+ 
+  dat <- age_depth_obj$obs
   
-  
-  sim_pars <- c(sim_gamma_shape = sim_gamma_shape, 
-                sim_gamma_mean = sim_gamma_mean, ar1 = ar_coefs)
-
-  ad1 <- ad1 %>%
-    #rowwise() %>%
-    mutate(rad_age = Bchron::unCalibrate(age, type = "ages")) %>%
-    mutate(sampled = (rank(depth) %% sampling_interval == 0),
-           rad_age_sigma = 20 + age * 0.02) %>%
-    mutate(rad_age_hat = rnorm(n(), rad_age, rad_age_sigma))
-
-  ad1_samp <- ad1 %>%
-    filter(sampled)
-
-  if (is.null(sample_gap) == FALSE){
-    ad1_samp <- ad1_samp %>%
-      filter(depth < sample_gap[1] | depth > sample_gap[2])
-  }
-
-  ad1_samp <- calibrate_14C_age(ad1_samp,
-                                "rad_age_hat", "rad_age_sigma")
-
-
-  ham1 <-  hamstr(depth = ad1_samp$depth, obs_age = ad1_samp$age.14C.cal,
-                     obs_err = ad1_samp$age.14C.cal.se,
+  ham1 <-  hamstr(depth = dat$depth, obs_age = dat$age.14C.cal,
+                     obs_err = dat$age.14C.cal.se,
                      top_depth = min(ad1$depth), bottom_depth = max(ad1$depth),
                   K = K_hamstr,
                   acc_shape = acc_shape,
@@ -142,16 +159,16 @@ CompareHamBac <- function(top, bottom, d_depth, sim_gamma_shape,
                   chains = 3, cores = 3)
 
 
-  bac1 <- hamstr_bacon(depth = ad1_samp$depth, obs_age = ad1_samp$rad_age_hat,
-                       obs_err = ad1_samp$rad_age_sigma,
+  bac1 <- hamstr_bacon(depth = dat$depth, obs_age = dat$age_14C_hat,
+                       obs_err = dat$age_14C_sigma,
                        acc.mean = acc_mean, acc.shape = acc_shape,
                        mem.mean = mem_mean, mem.strength = mem_strength,
                        d.min = min(ad1$depth), d.max = max(ad1$depth),
                        thick = diff(range(ad1$depth)) / K_bacon,
                        suggest = "FALSE")
 
-  return(list(sim_pars = sim_pars, 
-              sim_core = ad1, hamstr = ham1, bacon = bac1
+  return(list(age_depth_obj = age_depth_obj,
+              hamstr = ham1, bacon = bac1
   ))
 }
 
