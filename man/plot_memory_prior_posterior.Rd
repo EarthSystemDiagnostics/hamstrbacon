@@ -40,7 +40,7 @@ Plot Memory Prior and Posterior
 \keyword{internal}
 \keyword{iter}
 \keyword{mem_mean}
-\keyword{mem_strength=}
+\keyword{mem_strength}
 \keyword{nu}
 \keyword{obs_age}
 \keyword{obs_err}

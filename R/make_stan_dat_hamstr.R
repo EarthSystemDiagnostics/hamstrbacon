@@ -104,13 +104,15 @@ alpha_indices <- function(K){
 #' @examples
 #' make_stan_dat_hamstr(depth = MSB2K$depth,
 #'               obs_age = MSB2K$age,
-#'               obs_err = MSB2K$error)
+#'               obs_err = MSB2K$error,
+#'               K = 128)
 make_stan_dat_hamstr <- function(depth=NULL, obs_age=NULL, obs_err=NULL,
                                  top_depth=NULL, bottom_depth=NULL,
                                  pad_top_bottom=NULL,
                                  K=NULL, nu=NULL,
                                  acc_mean_prior=NULL,
                                  acc_shape=NULL,
+                                 scale_shape = NULL,
                                  mem_mean=NULL, mem_strength=NULL,
                                  scale_R=NULL,
                                  inflate_errors=NULL,
@@ -205,7 +207,8 @@ make_stan_dat_hamstr <- function(depth=NULL, obs_age=NULL, obs_err=NULL,
 
   l <- append(l, alpha_idx)
 
-  #l$K_lvls <- length(l$K)
+  l$n_lvls <- length(K)
+  l$scale_shape = as.numeric(l$scale_shape)
   #l$K_idx <- l$lvl - 1
 
   return(l)
@@ -245,8 +248,6 @@ get_inits_hamstr <- function(stan_dat){
     # create starting alpha values +- 3 SD from the overal prior mean (but always +ve)
     alpha = with(stan_dat, abs(stats::rnorm(K_tot, acc_mean_prior, acc_mean_prior/3))),
     #record_acc_mean = (abs(rnorm(1, stan_dat$acc_mean_prior, stan_dat$acc_mean_prior/3))),
-
-    #acc_shape = abs(rnorm(1, 1.5, 1.5/3)),
 
     age0 = stats::rnorm(1, min(stan_dat$obs_age), 2)
   )
