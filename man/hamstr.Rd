@@ -14,6 +14,7 @@ hamstr(
   pad_top_bottom = FALSE,
   acc_mean_prior = NULL,
   acc_shape = 1.5,
+  scale_shape = TRUE,
   mem_mean = 0.5,
   mem_strength = 10,
   scale_R = TRUE,
@@ -55,6 +56,10 @@ mean accumulation rate estimated by fitting a robust linear model using
 
 \item{acc_shape}{Hyperparameter for the shape of the priors on accumulation rates.
 Defaults to 1.5 - as for Bacon 2.2.}
+
+\item{scale_shape}{Scale the shape parameter according to the number of hierarchical
+levels, to control the total variance of the alpha innovations. This defaults
+to TRUE as of Hamstr verion 0.5.}
 
 \item{mem_mean}{Hyperparameter: a parameter of the Beta prior distribution on
 "memory", i.e. the autocorrelation parameter in the underlying AR1 model.
@@ -112,7 +117,7 @@ fit <- hamstr(
   obs_err = MSB2K$error,
   K = c(10, 10), nu = 6,
   acc_mean_prior = 20,
-  mem_mean = 0.5, mem_strength= 10,
+  mem_mean = 0.5, mem_strength = 10,
   inflate_errors = 0,
   iter = 2000, chains = 3)
 

@@ -171,7 +171,7 @@ summary(hamstr_fit_1)
 The hierarchical structure of the sections makes it difficult to specify the exact depth resolution that you want for your resulting age-depth model. The `predict` method takes an additional argument `depth` to interpolate to a specific set of depths. The function returns NA for depths that are outside the modelled depths.
 
 ```{r}
-age.mods.interp <- predict(hamstr_fit_1, depth = seq(0, 100, by = 1))
+age.mods.interp <- predict(hamstr_fit_1, new_depth = seq(0, 100, by = 1))
 ```
 
 These interpolated age models can summarised with the same function as the original fitted objects, but the n_eff and Rhat information is lost.
