@@ -4,7 +4,7 @@
 \alias{interpolate_age_models}
 \title{Interpolate Posterior Age Model At New Depths}
 \usage{
-interpolate_age_models(hamstr_fit, depth)
+interpolate_age_models(hamstr_fit, depth = NULL)
 }
 \arguments{
 \item{hamstr_fit}{The object returned from \code{stan_hamstr}.}
@@ -30,7 +30,7 @@ fit <- hamstr(
   inflate_errors = 0,
   iter = 2000, chains = 3)
 
-interpolate.age.models(fit, depth = seq(1000, 15000, by = 1000))
+interpolate_age_models(fit, depth = seq(1000, 15000, by = 1000))
 }
 
 }

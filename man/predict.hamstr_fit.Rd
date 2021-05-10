@@ -5,16 +5,25 @@
 \title{Interpolate Age Models at Given Depths}
 \usage{
 \method{predict}{hamstr_fit}(object, depth = "modelled")
+
+\method{predict}{hamstr_fit}(object, depth = "modelled")
 }
 \arguments{
+\item{object}{}
+
 \item{depth}{Defaults to "modelled", which returns the modelled depths.
 "data" returns age models at the depths of the observations,
 or a numerical vector to specify depths}
 }
 \value{
 
+
+
 }
 \description{
+Method for generic function predict. Returns the posterior age
+models interpolated to new depths given in depth.
+
 Method for generic function predict. Returns the posterior age
 models interpolated to new depths given in depth.
 }

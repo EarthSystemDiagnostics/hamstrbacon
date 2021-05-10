@@ -110,6 +110,5 @@ Make the data object required by the Stan program
 \examples{
 make_stan_dat_hamstr(depth = MSB2K$depth,
               obs_age = MSB2K$age,
-              obs_err = MSB2K$error,
-              K = 128)
+              obs_err = MSB2K$error)
 }
