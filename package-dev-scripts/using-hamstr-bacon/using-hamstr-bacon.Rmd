@@ -52,9 +52,11 @@ hambac_5 <- hamstr_bacon(id = "sdf",
                          depth = MSB2K_cal$depth,
                                obs_age = MSB2K_cal$age,
                                obs_err = MSB2K_cal$error,
-                               thick = 5, cc = 1)
+                               thick = 5, cc = 1, 
+                         close.connections = FALSE)
 
 plot(hambac_5)
+
 ```
 
 The plot method works for hamstr_bacon models too.

@@ -51,7 +51,7 @@ hamstr_bacon <- function(
   remove = FALSE, ssize = 2000, th0 = c(),
   burnin = min(500, ssize), MinAge = c(), MaxAge = c(),
   plot.pdf = FALSE, 
-  close.connections = TRUE,
+  close.connections = FALSE,
   verbose = FALSE, suppress.plots = TRUE
 ){
   if(packageVersion("rbacon") < "2.5.2")
