@@ -1,7 +1,7 @@
 hamstr: Hierarchical Accumulation Modelling with Stan and R.
 ================
 Andrew M. Dolman
-2021-05-10
+2021-06-17
 
 ------------------------------------------------------------------------
 
@@ -116,6 +116,8 @@ along the top of the age-model plot.
 
 ``` r
 plot(hamstr_fit_1)
+#> Joining, by = "idx"
+#> Joining, by = "alpha_idx"
 ```
 
 ![](readme_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
@@ -128,6 +130,7 @@ Additionally, plotting of the diagnostic plots can be switched off.
 
 ``` r
 plot(hamstr_fit_1, summarise = FALSE, plot_diagnostics = FALSE)
+#> Joining, by = "idx"
 ```
 
 ![](readme_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
@@ -210,6 +213,81 @@ hamstr_fit_2 <- hamstr(depth = MSB2K_cal$depth,
                    obs_age = MSB2K_cal$age.14C.cal,
                    obs_err = MSB2K_cal$age.14C.cal.se,
                    K = c(5, 5))
+#> 
+#> SAMPLING FOR MODEL 'hamstr' NOW (CHAIN 1).
+#> Chain 1: 
+#> Chain 1: Gradient evaluation took 0 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0 seconds.
+#> Chain 1: Adjust your expectations accordingly!
+#> Chain 1: 
+#> Chain 1: 
+#> Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)
+#> Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)
+#> Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)
+#> Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)
+#> Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)
+#> Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+#> Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+#> Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+#> Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+#> Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+#> Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+#> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
+#> Chain 1: 
+#> Chain 1:  Elapsed Time: 2.354 seconds (Warm-up)
+#> Chain 1:                1.965 seconds (Sampling)
+#> Chain 1:                4.319 seconds (Total)
+#> Chain 1: 
+#> 
+#> SAMPLING FOR MODEL 'hamstr' NOW (CHAIN 2).
+#> Chain 2: 
+#> Chain 2: Gradient evaluation took 0 seconds
+#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0 seconds.
+#> Chain 2: Adjust your expectations accordingly!
+#> Chain 2: 
+#> Chain 2: 
+#> Chain 2: Iteration:    1 / 2000 [  0%]  (Warmup)
+#> Chain 2: Iteration:  200 / 2000 [ 10%]  (Warmup)
+#> Chain 2: Iteration:  400 / 2000 [ 20%]  (Warmup)
+#> Chain 2: Iteration:  600 / 2000 [ 30%]  (Warmup)
+#> Chain 2: Iteration:  800 / 2000 [ 40%]  (Warmup)
+#> Chain 2: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+#> Chain 2: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+#> Chain 2: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+#> Chain 2: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+#> Chain 2: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+#> Chain 2: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+#> Chain 2: Iteration: 2000 / 2000 [100%]  (Sampling)
+#> Chain 2: 
+#> Chain 2:  Elapsed Time: 2.014 seconds (Warm-up)
+#> Chain 2:                1.74 seconds (Sampling)
+#> Chain 2:                3.754 seconds (Total)
+#> Chain 2: 
+#> 
+#> SAMPLING FOR MODEL 'hamstr' NOW (CHAIN 3).
+#> Chain 3: 
+#> Chain 3: Gradient evaluation took 0 seconds
+#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0 seconds.
+#> Chain 3: Adjust your expectations accordingly!
+#> Chain 3: 
+#> Chain 3: 
+#> Chain 3: Iteration:    1 / 2000 [  0%]  (Warmup)
+#> Chain 3: Iteration:  200 / 2000 [ 10%]  (Warmup)
+#> Chain 3: Iteration:  400 / 2000 [ 20%]  (Warmup)
+#> Chain 3: Iteration:  600 / 2000 [ 30%]  (Warmup)
+#> Chain 3: Iteration:  800 / 2000 [ 40%]  (Warmup)
+#> Chain 3: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+#> Chain 3: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+#> Chain 3: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+#> Chain 3: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+#> Chain 3: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+#> Chain 3: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+#> Chain 3: Iteration: 2000 / 2000 [100%]  (Sampling)
+#> Chain 3: 
+#> Chain 3:  Elapsed Time: 3.01 seconds (Warm-up)
+#> Chain 3:                1.879 seconds (Sampling)
+#> Chain 3:                4.889 seconds (Total)
+#> Chain 3:
 ```
 
 ``` r
@@ -247,18 +325,18 @@ predict(hamstr_fit_1)
 ``` r
 summary(hamstr_fit_1)
 #> # A tibble: 81 x 13
-#>    depth   idx par    mean se_mean    sd `2.5%` `25%` `50%` `75%` `97.5%` n_eff
-#>    <dbl> <dbl> <chr> <dbl>   <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>   <dbl> <dbl>
-#>  1  1.5      1 c_ag~ 4498.   2.28   67.4  4357. 4455. 4503. 4544.   4617.  875.
-#>  2  2.72     2 c_ag~ 4515.   2.07   62.3  4386. 4477. 4519. 4559.   4627.  908.
-#>  3  3.95     3 c_ag~ 4534.   1.87   58.1  4417. 4498. 4536. 4574.   4639.  965.
-#>  4  5.18     4 c_ag~ 4552.   1.68   54.7  4442. 4517. 4554. 4589.   4653. 1059.
-#>  5  6.4      5 c_ag~ 4570.   1.54   52.3  4461. 4537. 4571. 4605.   4666. 1155.
-#>  6  7.62     6 c_ag~ 4588.   1.45   50.9  4482. 4556. 4590. 4621.   4682. 1233.
-#>  7  8.85     7 c_ag~ 4607.   1.31   48.0  4508. 4576. 4608. 4638.   4696. 1348.
-#>  8 10.1      8 c_ag~ 4626.   1.13   44.7  4535. 4596. 4626. 4656.   4710. 1573.
-#>  9 11.3      9 c_ag~ 4645.   0.931  42.1  4560. 4617. 4645. 4674.   4726. 2051.
-#> 10 12.5     10 c_ag~ 4664.   0.806  40.6  4583. 4637. 4664. 4692.   4743. 2535.
+#>    depth   idx par     mean se_mean    sd `2.5%` `25%` `50%` `75%` `97.5%` n_eff
+#>    <dbl> <dbl> <chr>  <dbl>   <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>   <dbl> <dbl>
+#>  1  1.5      1 c_age~ 4498.   2.28   67.4  4357. 4455. 4503. 4544.   4617.  875.
+#>  2  2.72     2 c_age~ 4515.   2.07   62.3  4386. 4477. 4519. 4559.   4627.  908.
+#>  3  3.95     3 c_age~ 4534.   1.87   58.1  4417. 4498. 4536. 4574.   4639.  965.
+#>  4  5.18     4 c_age~ 4552.   1.68   54.7  4442. 4517. 4554. 4589.   4653. 1059.
+#>  5  6.4      5 c_age~ 4570.   1.54   52.3  4461. 4537. 4571. 4605.   4666. 1155.
+#>  6  7.62     6 c_age~ 4588.   1.45   50.9  4482. 4556. 4590. 4621.   4682. 1233.
+#>  7  8.85     7 c_age~ 4607.   1.31   48.0  4508. 4576. 4608. 4638.   4696. 1348.
+#>  8 10.1      8 c_age~ 4626.   1.13   44.7  4535. 4596. 4626. 4656.   4710. 1573.
+#>  9 11.3      9 c_age~ 4645.   0.931  42.1  4560. 4617. 4645. 4674.   4726. 2051.
+#> 10 12.5     10 c_age~ 4664.   0.806  40.6  4583. 4637. 4664. 4692.   4743. 2535.
 #> # ... with 71 more rows, and 1 more variable: Rhat <dbl>
 ```
 
@@ -303,6 +381,7 @@ options.
 
 ``` r
 plot(hamstr_fit_1, type = "hier_acc")
+#> Joining, by = "alpha_idx"
 ```
 
 ![](readme_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->

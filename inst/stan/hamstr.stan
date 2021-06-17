@@ -10,7 +10,7 @@ data {
   vector[N] obs_err;
 
   // resolution of age-depth model
-  int<lower = 1> n_lvls; // number of hierarchical levels, including overall mean
+  int<lower = 1> n_lvls; // number of hierarchical levels, not including overall mean
   int<lower=0> K_fine;  // number of highest resolution sections
   int<lower=0> K_tot;  // total no of gamma parameters
   
@@ -70,7 +70,7 @@ transformed data{
   // scale shape
   real<lower = 1> acc_shape_adj;
   if (scale_shape == 1){
-    acc_shape_adj = acc_shape * n_lvls + ((n_lvls - 1)/(acc_shape+1));
+    acc_shape_adj = acc_shape * n_lvls;
   } else{
     acc_shape_adj = acc_shape;
   }

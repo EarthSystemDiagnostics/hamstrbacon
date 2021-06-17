@@ -57,6 +57,104 @@ hamstr_bacon(
 \item{obs_age}{A vector of observed ages}
 
 \item{obs_err}{A vector of errors on the observed ages}
+
+\item{thick}{Bacon will divide the core into sections of equal thickness specified by thick (default \code{thick=5}).}
+
+\item{d.min}{Minimum depth of age-depth model (use this to extrapolate to depths higher than the top dated depth).}
+
+\item{d.max}{Maximum depth of age-depth model (use this to extrapolate to depths below the bottom dated depth).}
+
+\item{d.by}{Depth intervals at which ages are calculated. Defaults to \code{d.by=1}.}
+
+\item{seed}{Seed used for C++ executions. If it is not assigned (\code{seed=NA}; default) then the seed is set by system.}
+
+\item{acc.shape}{The prior for the accumulation rate consists of a gamma distribution with two parameters.
+Its shape is set by acc.shape (default \code{acc.shape=1.5}; higher values result in more peaked shapes).}
+
+\item{acc.mean}{The accumulation rate prior consists of a gamma distribution with two parameters. Its mean is set by acc.mean (default \code{acc.mean=20} yr/cm (or whatever age or depth units are chosen),
+which can be changed to, e.g., 5, 10 or 50 for different kinds of deposits). Multiple values can be given in case of hiatuses or boundaries, e.g., Bacon(hiatus.depths=23, acc.mean=c(5,20))}
+
+\item{mem.strength}{The prior for the memory (dependence of accumulation rate between neighbouring depths) is a beta distribution, which looks much like the gamma distribution.
+but its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.strength=10}
+(higher values result in more peaked shapes) allow for a large range of posterior memory values. Please note that the default memory prior has been updated from rbacon version 2.5.1 on, to repair a bug.}
+
+\item{mem.mean}{The prior for the memory is a beta distribution, which looks much like the gamma distribution but
+its values are always between 0 (no assumed memory) and 1 (100\% memory). Its default settings of \code{mem.mean=0.5}
+allow for a large range of posterior memory values. Please note that the default memory prior has been updated from rbacon version 2.5.1. on, to repair a bug.}
+
+\item{boundary}{The assumed depths of any boundary, which divides sections of different accumulation rate regimes (e.g., as indicated by major change in the stratigraphy). No hiatus is assumed between these sections, and memory is reset crossing the boundary. Different accumulation priors can be set for the sections above and below the boundary, e.g., \code{acc.mean=c(5, 20)}. See also \code{hiatus.depths}, \code{mem.mean}, \code{acc.mean} and \code{acc.shape}. Setting many boundaries might not work, and having more than one boundary per model section (see \code{'thick'}) might not work either.}
+
+\item{hiatus.depths}{The assumed depths for any hiatus should be provided as, e.g.,
+\code{hiatus.depths=20} for one at 20cm depth, and \code{hiatus.depths=c(20,40)} for two hiatuses at 20 and 40 cm depth.}
+
+\item{hiatus.max}{The prior for the maximum length of the hiatus. Hiatus length is a uniform distribution, with equal probabilities between 0 and \code{hiatus.max} yr (or whatever other \code{age.unit} is chosen).}
+
+\item{add}{Add a value to the maximum hiatus length if a boundary is chosen. Defaults to 100 yr (or whatever other age unit is chosen). Can be adapted if Bacon complains that the parameters are out of support.}
+
+\item{cc}{Calibration curve for C-14 dates: \code{cc=1} for IntCal20 (northern hemisphere terrestrial), \code{cc=2} for Marine20 (marine),
+\code{cc=3} for SHCal20 (southern hemisphere terrestrial). For dates that are already on the cal BP scale use \code{cc=0}.}
+
+\item{cc1}{For northern hemisphere terrestrial 14C dates (IntCal20).}
+
+\item{cc2}{For marine 14C dates (Marine20).}
+
+\item{cc3}{For southern hemisphere 14C dates (SHCal20).}
+
+\item{cc4}{Use an alternative curve (3 columns: cal BP, 14C age, error, separated by white spaces and saved as a plain-text file). See \code{ccdir}.}
+
+\item{ccdir}{Directory where the calibration curves for C14 dates \code{cc} are located. By default \code{ccdir=""}.
+For example, use \code{ccdir="."} to choose current working directory, or \code{ccdir="Curves/"} to choose sub-folder \code{Curves/}. Note that all calibration curves should reside in the same directory. If you want to add a custom-built curve, put it in the directory where the default calibration curves are (probably \code{list.files(paste0(.libPaths(), "/IntCal/extdata"))}).
+Alternatively produce a new folder, and add your curve as well as the default calibration curves there (cc1, cc2 and cc3; e.g., \code{write.table(copyCalibrationCurve(1), "./3Col_intcal20.14C", sep="\t")}.)}
+
+\item{postbomb}{Use a postbomb curve for negative (i.e. postbomb) 14C ages. \code{0 = none, 1 = NH1, 2 = NH2, 3 = NH3, 4 = SH1-2, 5 = SH3}}
+
+\item{delta.R}{Mean of core-wide age offsets (e.g., regional marine offsets).}
+
+\item{delta.STD}{Error of core-wide age offsets (e.g., regional marine offsets).}
+
+\item{t.a}{The dates are treated using the student's t distribution by default (\code{normal=FALSE}).
+The student's t-distribution has two parameters, t.a and t.b, set at 3 and 4 by default (see Christen and Perez, 2010).
+If you want to assign narrower error distributions (more closely resembling the normal distribution), set t.a and t.b at for example 33 and 34 respectively (e.g., for specific dates in your .csv file).
+For symmetry reasons, t.a must always be equal to t.b-1.}
+
+\item{t.b}{The dates are treated using the student's t distribution by default (\code{normal=FALSE}).
+The student's t-distribution has two parameters, t.a and t.b, set at 3 and 4 by default (see Christen and Perez, 2010).
+If you want to assign narrower error distributions (more closely resembling the normal distribution), set t.a and t.b at for example 33 and 34 respectively (e.g., for specific dates in your .csv file).
+For symmetry reasons, t.a must always be equal to t.b-1.}
+
+\item{normal}{By default, Bacon uses the student's t-distribution to treat the dates. Use \code{normal=TRUE} to use the normal/Gaussian distribution. This will generally give higher weight to the dates.}
+
+\item{suggest}{If initial analysis of the data indicates abnormally slow or fast accumulation rates, Bacon will suggest to change the prior.}
+
+\item{accept.suggestions}{Automatically accept the suggested values. Use with care. Default \code{accept.suggestions=FALSE}.
+Also, if the length of the core would cause too few or too many sections with the default settings, Bacon will suggest an alternative section thickness \code{thick}.
+Accept these suggested alternative settings by typing "y" (or "yes please" if you prefer to be polite), or leave as is by typing "n" (or anything else, really). To get rid of these suggestions, use \code{suggest=FALSE}.}
+
+\item{reswarn}{Bacon will warn you if the number of sections lies outside the safe range (default between 10 and 200 sections;
+\code{reswarn=c(10,200)}). Too few sections could lead to an `elbowy' model while with too many sections the modelling process can get lost,
+ resulting in age-models far away from the dated depths.}
+
+\item{ask}{By default Bacon will ask you to confirm that you want to run the core with the provided settings. Disable this using \code{ask=FALSE} (e.g., for batch runs).}
+
+\item{slump}{Upper and lower depths of any sections of assumed abrupt accumulation, that require excising before age-modelling (and adding after age-modelling). Requires pairs of depths, e.g., \code{slump=c(10,15,60,67)} for slumps at 67-60 and 15-10 cm core depth.}
+
+\item{remove}{Whether or not to remove depths within slumps. Defaults to \code{remove=FALSE}.}
+
+\item{ssize}{The approximate amount of iterations to store at the end of the MCMC run. Default 2000; decrease for faster (but less reliable) runs or increase for cores where the MCMC mixing (panel at upper-left corner of age-model graph) appears problematic.}
+
+\item{th0}{Starting years for the MCMC iterations.}
+
+\item{burnin}{Amount of initial, likely sub-optimal MCMC iterations that will be removed.}
+
+\item{MinAge}{Minimum age limit for Bacon runs, default at current year in cal BP. To set plot limits, use \code{yr.min} instead.}
+
+\item{MaxAge}{Maximum age limit for Bacon runs, default at 1,000,000 cal BP. To set plot limits, use \code{yr.max} instead.}
+
+\item{plot.pdf}{Produce a pdf file of the age-depth plot. Defaults to \code{plot.pdf=TRUE} after a Bacon run.}
+
+\item{close.connections}{Internal option to close connections after a run. Default \code{close.connections=TRUE}.}
+
+\item{verbose}{Provide feedback on what is happening (default \code{verbose=TRUE}).}
 }
 \value{
 
