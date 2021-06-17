@@ -1,7 +1,8 @@
 ## hamstr 0.5.2
 
-* Minor change to the way acc_shape is adjusted to account for the number of hierarchical levels. 
-* acc_shape is now adjusted to control the shape of the gamma distributed alpha parameters, not the total variance. The difference is minor.
+* Minor change to the way acc_shape is adjusted to account for the number of hierarchical levels. acc_shape is now adjusted to control the shape of the gamma distributed alpha parameters, not the total variance. The difference is minor.
+
+* New methods to extract and plot accumulation rates
 
 
 ## hamstr 0.5.1

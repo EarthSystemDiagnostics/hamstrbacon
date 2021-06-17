@@ -32,8 +32,6 @@ package.
 library(hamstr)
 library(rstan)
 library(tidyverse)
-#> Warning: package 'tibble' was built under R version 4.0.3
-#> Warning: package 'readr' was built under R version 4.0.3
 
 set.seed(20200827)
 ```
@@ -87,7 +85,7 @@ compare_14C_PDF(MSB2K$age[i], MSB2K$error[i], cal_curve = "marine20") +
 ### Fitting age-models with **hamstr**
 
 By default **hamstr** runs with three Markov chains and these can be run
-in parallel. This code will assign 3 (processor) cores as long as the
+in parallel. This code will assign 3 processor cores as long as the
 machine has at least 3. The number of cores can also be set for specific
 calls of the `hamstr` function using the `cores` argument.
 
@@ -116,7 +114,6 @@ along the top of the age-model plot.
 
 ``` r
 plot(hamstr_fit_1)
-#> Joining, by = "idx"
 #> Joining, by = "alpha_idx"
 ```
 
@@ -130,28 +127,28 @@ Additionally, plotting of the diagnostic plots can be switched off.
 
 ``` r
 plot(hamstr_fit_1, summarise = FALSE, plot_diagnostics = FALSE)
-#> Joining, by = "idx"
 ```
 
 ![](readme_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 #### Mean accumulation rate
 
-There is no need to specify a prior value for the mean accumulation
-rate, parameter `acc.mean` in Bacon, as in **hamstr**, this overall mean
+There is no need to specify a prior value for the mean accumulation rate
+(parameter `acc.mean` in Bacon) as in **hamstr**, this overall mean
 accumulation rate is a full parameter estimated from the data.
 
 By default, **hamstr** uses robust linear regression (`MASS::rlm`) to
 estimate the mean accumulation rate from the data, and then uses this to
 parametrise a prior distribution for the overall mean accumulation rate.
 This prior is a half-normal with zero mean and standard deviation equal
-to 10 times the estimated mean. Although this does introduce an element
-of “data-peaking”, using the data twice (for both the prior and
-likelihood), the resulting prior is only weakly-informative. The
-advantage is that the prior is automatically scaled appropriately
-regardless of the units of depth or age.
+to 10 times the estimated mean. Although this does introduce a slight
+element of “double-dipping”, using the data twice (for both the prior
+and likelihood), the resulting prior is only weakly-informative. The
+advantage of this approach is that the prior is automatically scaled
+appropriately regardless of the units of depth or age.
 
-This prior can be checked visually against the posterior.
+This prior can be checked visually against the posterior. The posterior
+distribution should be much narrower than the weakly informative prior.
 
 ``` r
 plot(hamstr_fit_1, type = "acc_mean_prior_post")
@@ -159,21 +156,24 @@ plot(hamstr_fit_1, type = "acc_mean_prior_post")
 
 ![](readme_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
-Default parameter values for the shape of the accumulation prior
-`acc_shape = 1.5`, the memory mean `mem_mean = 0.5` and strength
-`mem_strength = 10`, are the same as for Bacon &gt;= 2.5.1.
+#### Other hyperparameters
 
-#### Setting the thickness and number of discrete sections
+Default parameter values for the shape of the gamma distributed
+accumulation rates `acc_shape = 1.5`, the memory mean `mem_mean = 0.5`
+and memory strength `mem_strength = 10`, are the same as for Bacon &gt;=
+2.5.1.
+
+### Setting the thickness, number, and hierarchical structure of the discrete sections
 
 One of the more critical tuning parameters in the **Bacon** model is the
 parameter `thick`, which determines the thickness and number of discrete
-core sections. Finding a good or optimal value for a given core is often
-critical to getting a good age-depth model. Too few sections and the
-resulting age-model is very “blocky” and can miss changes in
-sedimentation rate; however, counter-intuitively, too many very thin
-sections can also often result in an age-model that “under-fits” the
-data - ploughing a straight line through the age-control points when a
-lower resolution model shows variation in accumulation rate.
+down-core sediment sections modelled. Finding a good or optimal value
+for a given core is often critical to getting a good age-depth model.
+Too few sections and the resulting age-model is very “blocky” and can
+miss changes in sedimentation rate; however, counter-intuitively, too
+many very thin sections can also often result in an age-model that
+“under-fits” the data - a straight line through the age-control points
+when a lower resolution model shows variation in accumulation rate.
 
 The key structural difference between **Bacon** and **hamstr** models is
 that with **hamstr** the sediment core is modelled at multiple
@@ -204,97 +204,15 @@ the number of new child sections per level, are approximately equal,
 e.g. c(4, 4, 4, 4). The total number of sections at the finest level is
 set so that the resolution is 1 cm per section, up to a total length of
 900 cm, above which the default remains 900 sections and a coarser
-resolution is used. This can changed with the parameter K.
+resolution is used. This can be changed from the default via the
+parameter `K`.
 
-Here is an example of a coarser model.
-
-``` r
-hamstr_fit_2 <- hamstr(depth = MSB2K_cal$depth,
-                   obs_age = MSB2K_cal$age.14C.cal,
-                   obs_err = MSB2K_cal$age.14C.cal.se,
-                   K = c(5, 5))
-#> 
-#> SAMPLING FOR MODEL 'hamstr' NOW (CHAIN 1).
-#> Chain 1: 
-#> Chain 1: Gradient evaluation took 0 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0 seconds.
-#> Chain 1: Adjust your expectations accordingly!
-#> Chain 1: 
-#> Chain 1: 
-#> Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)
-#> Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)
-#> Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)
-#> Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)
-#> Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)
-#> Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)
-#> Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)
-#> Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)
-#> Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)
-#> Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
-#> Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
-#> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
-#> Chain 1: 
-#> Chain 1:  Elapsed Time: 2.354 seconds (Warm-up)
-#> Chain 1:                1.965 seconds (Sampling)
-#> Chain 1:                4.319 seconds (Total)
-#> Chain 1: 
-#> 
-#> SAMPLING FOR MODEL 'hamstr' NOW (CHAIN 2).
-#> Chain 2: 
-#> Chain 2: Gradient evaluation took 0 seconds
-#> Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0 seconds.
-#> Chain 2: Adjust your expectations accordingly!
-#> Chain 2: 
-#> Chain 2: 
-#> Chain 2: Iteration:    1 / 2000 [  0%]  (Warmup)
-#> Chain 2: Iteration:  200 / 2000 [ 10%]  (Warmup)
-#> Chain 2: Iteration:  400 / 2000 [ 20%]  (Warmup)
-#> Chain 2: Iteration:  600 / 2000 [ 30%]  (Warmup)
-#> Chain 2: Iteration:  800 / 2000 [ 40%]  (Warmup)
-#> Chain 2: Iteration: 1000 / 2000 [ 50%]  (Warmup)
-#> Chain 2: Iteration: 1001 / 2000 [ 50%]  (Sampling)
-#> Chain 2: Iteration: 1200 / 2000 [ 60%]  (Sampling)
-#> Chain 2: Iteration: 1400 / 2000 [ 70%]  (Sampling)
-#> Chain 2: Iteration: 1600 / 2000 [ 80%]  (Sampling)
-#> Chain 2: Iteration: 1800 / 2000 [ 90%]  (Sampling)
-#> Chain 2: Iteration: 2000 / 2000 [100%]  (Sampling)
-#> Chain 2: 
-#> Chain 2:  Elapsed Time: 2.014 seconds (Warm-up)
-#> Chain 2:                1.74 seconds (Sampling)
-#> Chain 2:                3.754 seconds (Total)
-#> Chain 2: 
-#> 
-#> SAMPLING FOR MODEL 'hamstr' NOW (CHAIN 3).
-#> Chain 3: 
-#> Chain 3: Gradient evaluation took 0 seconds
-#> Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 0 seconds.
-#> Chain 3: Adjust your expectations accordingly!
-#> Chain 3: 
-#> Chain 3: 
-#> Chain 3: Iteration:    1 / 2000 [  0%]  (Warmup)
-#> Chain 3: Iteration:  200 / 2000 [ 10%]  (Warmup)
-#> Chain 3: Iteration:  400 / 2000 [ 20%]  (Warmup)
-#> Chain 3: Iteration:  600 / 2000 [ 30%]  (Warmup)
-#> Chain 3: Iteration:  800 / 2000 [ 40%]  (Warmup)
-#> Chain 3: Iteration: 1000 / 2000 [ 50%]  (Warmup)
-#> Chain 3: Iteration: 1001 / 2000 [ 50%]  (Sampling)
-#> Chain 3: Iteration: 1200 / 2000 [ 60%]  (Sampling)
-#> Chain 3: Iteration: 1400 / 2000 [ 70%]  (Sampling)
-#> Chain 3: Iteration: 1600 / 2000 [ 80%]  (Sampling)
-#> Chain 3: Iteration: 1800 / 2000 [ 90%]  (Sampling)
-#> Chain 3: Iteration: 2000 / 2000 [100%]  (Sampling)
-#> Chain 3: 
-#> Chain 3:  Elapsed Time: 3.01 seconds (Warm-up)
-#> Chain 3:                1.879 seconds (Sampling)
-#> Chain 3:                4.889 seconds (Total)
-#> Chain 3:
-```
-
-``` r
-plot(hamstr_fit_2)
-```
-
-![](readme_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+For a given shape parameter `acc_shape`, increasing the number of
+modelled hierarchical levels increases the total variance in the
+accumulation rates at the highest / finest resolution level. From
+**hamstr** version 0.5.0 and onwards, the total variance is controlled
+by modifying the shape parameter according to the number of hierarchical
+levels.
 
 ### Getting the fitted age models
 
@@ -307,16 +225,16 @@ predict(hamstr_fit_1)
 #> # A tibble: 243,000 x 3
 #>     iter depth   age
 #>    <int> <dbl> <dbl>
-#>  1     1  1.5  4524.
-#>  2     1  2.72 4552.
-#>  3     1  3.95 4572.
-#>  4     1  5.18 4582.
-#>  5     1  6.4  4594.
-#>  6     1  7.62 4603.
-#>  7     1  8.85 4613.
-#>  8     1 10.1  4628.
-#>  9     1 11.3  4636.
-#> 10     1 12.5  4648.
+#>  1     1  1.5  4550.
+#>  2     1  2.72 4556.
+#>  3     1  3.95 4564.
+#>  4     1  5.18 4574.
+#>  5     1  6.4  4586.
+#>  6     1  7.62 4598.
+#>  7     1  8.85 4619.
+#>  8     1 10.1  4654.
+#>  9     1 11.3  4675.
+#> 10     1 12.5  4704.
 #> # ... with 242,990 more rows
 ```
 
@@ -327,16 +245,16 @@ summary(hamstr_fit_1)
 #> # A tibble: 81 x 13
 #>    depth   idx par     mean se_mean    sd `2.5%` `25%` `50%` `75%` `97.5%` n_eff
 #>    <dbl> <dbl> <chr>  <dbl>   <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>   <dbl> <dbl>
-#>  1  1.5      1 c_age~ 4498.   2.28   67.4  4357. 4455. 4503. 4544.   4617.  875.
-#>  2  2.72     2 c_age~ 4515.   2.07   62.3  4386. 4477. 4519. 4559.   4627.  908.
-#>  3  3.95     3 c_age~ 4534.   1.87   58.1  4417. 4498. 4536. 4574.   4639.  965.
-#>  4  5.18     4 c_age~ 4552.   1.68   54.7  4442. 4517. 4554. 4589.   4653. 1059.
-#>  5  6.4      5 c_age~ 4570.   1.54   52.3  4461. 4537. 4571. 4605.   4666. 1155.
-#>  6  7.62     6 c_age~ 4588.   1.45   50.9  4482. 4556. 4590. 4621.   4682. 1233.
-#>  7  8.85     7 c_age~ 4607.   1.31   48.0  4508. 4576. 4608. 4638.   4696. 1348.
-#>  8 10.1      8 c_age~ 4626.   1.13   44.7  4535. 4596. 4626. 4656.   4710. 1573.
-#>  9 11.3      9 c_age~ 4645.   0.931  42.1  4560. 4617. 4645. 4674.   4726. 2051.
-#> 10 12.5     10 c_age~ 4664.   0.806  40.6  4583. 4637. 4664. 4692.   4743. 2535.
+#>  1  1.5      1 c_age~ 4507.   1.71   71.4  4354. 4465. 4512. 4557.   4631. 1737.
+#>  2  2.72     2 c_age~ 4524.   1.55   65.8  4381. 4483. 4529. 4569.   4641. 1799.
+#>  3  3.95     3 c_age~ 4541.   1.40   61.1  4413. 4503. 4545. 4583.   4651. 1900.
+#>  4  5.18     4 c_age~ 4558.   1.28   57.3  4438. 4522. 4561. 4597.   4664. 1996.
+#>  5  6.4      5 c_age~ 4575.   1.18   54.4  4461. 4540. 4578. 4611.   4678. 2107.
+#>  6  7.62     6 c_age~ 4592.   1.11   52.4  4482. 4558. 4595. 4627.   4694. 2219.
+#>  7  8.85     7 c_age~ 4610.   1.02   49.5  4508. 4578. 4612. 4642.   4706. 2373.
+#>  8 10.1      8 c_age~ 4628.   0.904  46.3  4535. 4598. 4630. 4659.   4719. 2626.
+#>  9 11.3      9 c_age~ 4647.   0.814  43.7  4559. 4618. 4648. 4675.   4734. 2879.
+#> 10 12.5     10 c_age~ 4665.   0.755  41.9  4583. 4638. 4666. 4693.   4748. 3073.
 #> # ... with 71 more rows, and 1 more variable: Rhat <dbl>
 ```
 
@@ -361,15 +279,34 @@ summary(age.mods.interp)
 #>    <dbl> <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>   <dbl>
 #>  1     0   NA   NA      NA    NA    NA    NA      NA 
 #>  2     1   NA   NA      NA    NA    NA    NA      NA 
-#>  3     2 4505.  65.1  4372. 4465. 4509. 4550.   4621.
-#>  4     3 4520.  61.2  4394. 4482. 4522. 4563.   4630.
-#>  5     4 4534.  57.9  4418. 4499. 4537. 4575.   4640.
-#>  6     5 4549.  55.1  4439. 4515. 4552. 4587.   4651.
-#>  7     6 4564.  52.9  4454. 4531. 4566. 4599.   4661.
-#>  8     7 4579.  51.4  4470. 4546. 4581. 4613.   4673.
-#>  9     8 4594.  49.9  4490. 4562. 4596. 4627.   4686.
-#> 10     9 4609.  47.5  4511. 4578. 4611. 4641.   4698.
+#>  3     2 4514.  68.9  4366. 4473. 4519. 4561.   4634.
+#>  4     3 4527.  64.6  4388. 4487. 4533. 4572.   4643.
+#>  5     4 4542.  60.9  4415. 4504. 4546. 4583.   4651.
+#>  6     5 4556.  57.8  4436. 4520. 4559. 4595.   4661.
+#>  7     6 4570.  55.2  4454. 4534. 4573. 4606.   4674.
+#>  8     7 4583.  53.2  4471. 4548. 4586. 4619.   4686.
+#>  9     8 4597.  51.4  4490. 4564. 4600. 4631.   4697.
+#> 10     9 4612.  49.1  4512. 4581. 4614. 4645.   4707.
 #> # ... with 91 more rows
+```
+
+### Getting and plotting the accumulation rate
+
+The down-core accumulation rates are returned and plotted in both
+depth-per-time, and time-per-depth units. If the input data are in years
+and cm then the units will be cm/kyr and yrs/cm respectively. Note that
+the acc\_mean parameter in both **hamstr** and Bacon is parametrised in
+terms of time per depth.
+
+``` r
+plot(hamstr_fit_1, type = "acc_rates")
+#> Joining, by = "idx"
+```
+
+![](readme_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+``` r
+summary(hamstr_fit_1, type = "acc_rates") 
 ```
 
 ### Diagnostic plots
@@ -423,22 +360,6 @@ rstan::traceplot(hamstr_fit_1$fit, par = c("alpha[1]"),
 ```
 
 ![](readme_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
-
-`alpha[2]` to `alpha[6]` will be the first 5 accumulations rates at the
-coarsest hierarchical level.
-
-``` r
-plot(hamstr_fit_1, type = "hier")
-```
-
-![](readme_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
-
-``` r
-rstan::traceplot(hamstr_fit_1$fit, par = paste0("alpha[", 2:6, "]"),
-                 inc_warmup = TRUE)
-```
-
-![](readme_files/figure-gfm/unnamed-chunk-21-2.png)<!-- -->
 
 ### References
 
