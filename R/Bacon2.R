@@ -30,7 +30,13 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
   }
   if (ccdir == "")
     ccdir <- system.file("extdata", package = "IntCal")
-  ccdir <- .validateDirectoryName(ccdir)
+  
+  if (packageVersion("rbacon") > "2.5.3"){
+    ccdir <- validateDirectoryName(ccdir)
+  }  else {
+    ccdir <- .validateDirectoryName(ccdir)
+    }
+  
   defaults <- system.file("extdata", defaults, package = packageName())
   dets <- read.dets(core, coredir, sep = sep, dec = dec, cc = cc)
   if (ncol(dets) > 4 && length(cc) > 0) {
