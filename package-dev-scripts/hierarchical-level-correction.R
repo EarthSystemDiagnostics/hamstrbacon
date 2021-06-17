@@ -3,15 +3,20 @@
 ## Effect of hierarchical levels on variance of final level
 
 
-HGammaVar <- function(K, shape, mean){
+HGammaVar <- function(K, shape, mean, adjust.shape = TRUE){
   
   AdjustShape <- function(shape, K){
-    shape * K + ((K - 1)/(shape+1))
+    shape * K #+ ((K - 1)/(shape +1)) 
   }
   
   scale <- mean / shape
   
-  shape <- AdjustShape(shape, K)
+  if (adjust.shape){
+    shape <- AdjustShape(shape, K)
+  } else {
+    shape = shape
+  }
+  
   
   K <- K+1
   
@@ -35,21 +40,46 @@ ExpVar <- function(shape, mean){
 
 
 shp <- 1.5
+mn <- 10
+K <- 20
 
+x1 <- replicate(200^2, HGammaVar(K = K, shape = shp, mean = mn, adjust.shape = TRUE))
+x1.m <- matrix(x1, ncol = 100)
+c.means <- colMeans(x1.m)
+hist(c.means)
+mean(c.means)
+var2 <- function(x) {
+  mean((x - mean(x))^2)
+}
 
-x1 <- replicate(100^2, HGammaVar(K = 8, shape = shp, mean = 1))
-x1 <- matrix(x1, ncol = 100)
-colMeans(x1)
-x1.var <- apply(x1, 2, var)
-mean(x1.var)
+var3 <- function(x) {
+  mean(x^2) - mean(x)^2
+}
+
+x1.var <- apply(x1.m, 2, var)
+#mean(x1.var)
 hist(x1.var, 25, xlim = c(0, max(x1.var)))
 
-abline(v = ExpVar(shape = shp, mean = 1), col = "Red")
+abline(v = ExpVar(shape = shp, mean = mn), col = "Red")
 abline(v = mean(x1.var), col = "Blue")
 abline(v = median(x1.var), col = "Green")
 
 
+#####
 
+#x1 <- replicate(100^2, HGammaVar(K = 10, shape = shp, mean = mn, adjust.shape = TRUE))
+g.pars <- MASS::fitdistr(x1, "gamma")
+g.pars
+f.gamma <- tibble(
+  x = seq(-1, max(x1), length.out = 1000),
+  fttd = dgamma(x, shape = g.pars$estimate[["shape"]], rate = g.pars$estimate[["rate"]]),
+  true = dgamma(x, shape = shp, rate = shp / mn)
+)
+
+h1 <- hist(x1, 100, plot = FALSE)
+hist(x1, 100, freq = FALSE, ylim = c(0, max(c(h1$density, f.gamma$true, f.gamma$fttd))))
+lines(fttd~x, data = f.gamma, col = "Red")
+lines(true~x, data = f.gamma, col = "Blue")
 
 ### With Gaussian
 
