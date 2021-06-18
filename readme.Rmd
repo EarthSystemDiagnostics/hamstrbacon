@@ -188,7 +188,7 @@ plot(hamstr_fit_1, type = "acc_rates")
 ```
 
 ```{r}
-summary(hamstr_fit_1, type = "acc_rates") 
+summary(hamstr_fit_1, type = "acc_rates")
 ```
 
 
