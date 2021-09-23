@@ -18,12 +18,12 @@
 #'
 #' @examples
 #' \dontrun{
-#' hb1 <- hamstr_bacon(id = "sdf", 
+#' hb1 <- hamstr_bacon(id = "sdf",
 #'                     depth = MSB2K$depth,
 #'                     obs_age = MSB2K$age,
-#'                     obs_err = MSB2K$error 
+#'                     obs_err = MSB2K$error
 #'                     )
-#' 
+#'
 #' plot(hb1)
 #' predict(hb1)
 #' summary(hb1)
@@ -32,25 +32,25 @@ hamstr_bacon <- function(
   id = "default",
   depth,
   obs_age, obs_err,
-  thick = 5, 
-  d.min = NA, d.max = NA, 
+  thick = 5,
+  d.min = NA, d.max = NA,
   d.by = NULL,
-  seed = NA, 
+  seed = NA,
   acc.shape = 1.5,  acc.mean = 20,
   mem.strength = 10, mem.mean = 0.5,
   boundary = NA,
   hiatus.depths = NA, hiatus.max = 10000,
-  add = c(), 
+  add = c(),
   cc = 1, cc1 = "IntCal20", cc2 = "Marine20", cc3 = "SHCal20",
   cc4 = "ConstCal", ccdir = "", postbomb = 0, delta.R = 0,
-  delta.STD = 0, t.a = 3, t.b = 4, normal = FALSE, 
+  delta.STD = 0, t.a = 3, t.b = 4, normal = FALSE,
   suggest = TRUE, accept.suggestions = TRUE,
   reswarn = c(10, 200),
-  ask = FALSE, 
+  ask = FALSE,
   slump = c(),
   remove = FALSE, ssize = 2000, th0 = c(),
   burnin = min(500, ssize), MinAge = c(), MaxAge = c(),
-  plot.pdf = FALSE, 
+  plot.pdf = FALSE,
   close.connections = FALSE,
   verbose = FALSE, suppress.plots = TRUE
 ){
@@ -86,11 +86,11 @@ hamstr_bacon <- function(
       delta.STD = delta.STD
     )
 
-  
+
   #fl <- suppressWarnings(normalizePath(paste0(tmpdir, "//", dirbase, ".csv")))
-  
+
   fl <- paste0(tmpdir, "//", dirbase, ".csv")
-  
+
   utils::write.csv(bacon_dat,
                    file = fl,
                    row.names = FALSE, quote = FALSE)
@@ -99,7 +99,7 @@ hamstr_bacon <- function(
 
   # capture the passed arguments
   pars <- c(as.list(environment()))
-  
+
   # hard code remember
   pars$remember <- FALSE
 
@@ -219,6 +219,8 @@ interpolate_bacon_age_models <- function(hamstr_bacon_fit, depth){
 
       # get posterior age models
       out <- return_bacon_age_mods(hamstr_bacon_fit)
+
+      class(out) <- append("hamstr_bacon_interpolated_ages", class(out))
 
       return(out)
 
