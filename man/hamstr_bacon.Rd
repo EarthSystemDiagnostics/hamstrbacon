@@ -167,10 +167,10 @@ boundaries, different calibration curves, postbomb curves.
 }
 \examples{
 \dontrun{
-hb1 <- hamstr_bacon(id = "sdf", 
+hb1 <- hamstr_bacon(id = "sdf",
                     depth = MSB2K$depth,
                     obs_age = MSB2K$age,
-                    obs_err = MSB2K$error 
+                    obs_err = MSB2K$error
                     )
 
 plot(hb1)
