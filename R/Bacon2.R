@@ -76,8 +76,15 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
   if (mem.mean < 0 || mem.mean > 1)
     stop("The prior for the mean of the memory should be between 0 and 1",
          FALSE)
-  if (!is.na(boundary[1]))
-    boundary <- sort(unique(boundary))
+  if (!is.na(boundary[1])){
+     boundary <- sort(unique(boundary))
+     
+     if (length(acc.mean) == 1)
+       acc.mean <- rep(acc.mean, length(boundary) +
+                         1)
+  }
+   
+  
   if (!is.na(hiatus.depths[1])) {
     hiatus.depths <- sort(unique(hiatus.depths))
     if (length(acc.mean) == 1)
