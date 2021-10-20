@@ -19,7 +19,7 @@
 "acc_mean_prior_post", "mem_prior_post"}
 
 \item{summarise}{logical TRUE or FALSE. Plot the realisations as a summarised
-"ribbon" showing 50% and 95% intervals (faster), or as a spaghetti plot 
+"ribbon" showing 50% and 95% intervals (faster), or as a spaghetti plot
 showing individual realisations. Defaults to TRUE (ribbon).}
 }
 \value{

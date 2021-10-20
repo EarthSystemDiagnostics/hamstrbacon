@@ -7,8 +7,6 @@
 plot_prior_posterior_hist(prior, posterior)
 }
 \arguments{
-\item{prior}{}
-
 \item{posterior}{}
 }
 \value{
