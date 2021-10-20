@@ -9,9 +9,12 @@
 #' @param obs_age A vector of observed ages
 #' @param obs_err A vector of errors on the observed ages
 #' @description Wraps the Bacon function from rbacon so that it can be used in a
-#' more typical "R" way. Returns age-depth models in a format to match hamstr
-#' output. Most Bacon functionality is accessible, for example hiatuses and
-#' boundaries, different calibration curves, postbomb curves.
+#'   more typical "R" way. Returns age-depth models in a format to match hamstr
+#'   output. Most Bacon functionality is accessible, for example hiatuses and
+#'   boundaries, different calibration curves, postbomb curves.
+#'   "accept.suggestions" defaults to TRUE so that the Bacon's accumulation rate
+#'   prior suggestion is used by default, however, the section thickness
+#'   parameter "thick" is not changed.
 #' @inheritParams rbacon::Bacon
 #' @return
 #' @export
