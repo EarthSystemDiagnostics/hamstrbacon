@@ -9,9 +9,12 @@
 #' @param obs_age A vector of observed ages
 #' @param obs_err A vector of errors on the observed ages
 #' @description Wraps the Bacon function from rbacon so that it can be used in a
-#' more typical "R" way. Returns age-depth models in a format to match hamstr
-#' output. Most Bacon functionality is accessible, for example hiatuses and
-#' boundaries, different calibration curves, postbomb curves.
+#'   more typical "R" way. Returns age-depth models in a format to match hamstr
+#'   output. Most Bacon functionality is accessible, for example hiatuses and
+#'   boundaries, different calibration curves, postbomb curves.
+#'   "accept.suggestions" defaults to TRUE so that the Bacon's accumulation rate
+#'   prior suggestion is used by default, however, the section thickness
+#'   parameter "thick" is not changed.
 #' @inheritParams rbacon::Bacon
 #' @return
 #' @export
@@ -416,16 +419,9 @@ plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
 
   obs_ages <- get_bacon_obs_ages(hamstr_bacon_fit)
 
-
   p.age.sum <- age_summary %>%
-    ggplot2::ggplot(ggplot2::aes(x = depth, y = mean)) +
-    ggplot2::geom_ribbon(ggplot2::aes(ymax = `2.5%`, ymin = `97.5%`), fill = "Lightgrey") +
-    ggplot2::geom_ribbon(ggplot2::aes(ymax = `75%`, ymin = `25%`), fill = "Darkgrey") +
-    ggplot2::geom_line() +
-    ggplot2::geom_line(ggplot2::aes(y = `50%`), colour = "Green") +
-    ggplot2::labs(x = "Depth", y = "Age") +
-    ggplot2::theme_bw() +
-    ggplot2::theme(panel.grid = ggplot2::element_blank())
+    plot_downcore_summary(.) +
+    ggplot2::labs(x = "Depth", y = "Age")
 
   p.age.sum <- p.age.sum +
     ggplot2::geom_linerange(data = obs_ages,

@@ -161,9 +161,12 @@ Accept these suggested alternative settings by typing "y" (or "yes please" if yo
 }
 \description{
 Wraps the Bacon function from rbacon so that it can be used in a
-more typical "R" way. Returns age-depth models in a format to match hamstr
-output. Most Bacon functionality is accessible, for example hiatuses and
-boundaries, different calibration curves, postbomb curves.
+  more typical "R" way. Returns age-depth models in a format to match hamstr
+  output. Most Bacon functionality is accessible, for example hiatuses and
+  boundaries, different calibration curves, postbomb curves.
+  "accept.suggestions" defaults to TRUE so that the Bacon's accumulation rate
+  prior suggestion is used by default, however, the section thickness
+  parameter "thick" is not changed.
 }
 \examples{
 \dontrun{

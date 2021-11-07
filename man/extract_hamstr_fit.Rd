@@ -7,6 +7,8 @@
 extract_hamstr_fit(object, pars = c("ages"), ...)
 }
 \arguments{
+\item{object}{hamstr_fit object}
+
 \item{pars}{The parameters to extract. If pars = "ages" (the default) a special
 method is invoke to return the age-depth models. If pars = "pars" the memory parameters
 and the overall mean accumulation rate are returned. Any other specification

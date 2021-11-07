@@ -203,8 +203,9 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
                                  sugg, " OK? (y/n) "))
   }
   if (tolower(substr(ans, 1, 1)) == "y") {
-    message(" Setting thick to ", sugg, "\n")
-    thick <- sugg
+    # disable changing of thick
+    #message(" Setting thick to ", sugg, "\n")
+    #thick <- sugg
     info$thick = thick
     info$elbows <- seq(floor(info$d.min), ceiling(info$d.max),
                        by = thick)

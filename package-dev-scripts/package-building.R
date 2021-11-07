@@ -5,6 +5,7 @@
 # devtools::install(quick = FALSE)
 # devtools::install(quick = FALSE, dependencies = FALSE)
 # devtools::install(quick = FALSE, build = FALSE, dependencies = FALSE)
+# devtools::install(quick = FALSE, build = TRUE, dependencies = FALSE)
 
 
 # using ../rstanlm because already inside the rstanlm directory
