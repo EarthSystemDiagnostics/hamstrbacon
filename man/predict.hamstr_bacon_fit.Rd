@@ -4,7 +4,12 @@
 \alias{predict.hamstr_bacon_fit}
 \title{Interpolate Age Models at Given Depths}
 \usage{
-\method{predict}{hamstr_bacon_fit}(object, depth = "modelled")
+\method{predict}{hamstr_bacon_fit}(
+  object,
+  type = c("age_models", "acc_rates"),
+  depth = c("modelled", "data"),
+  ...
+)
 }
 \arguments{
 \item{depth}{}

@@ -4,7 +4,12 @@
 \alias{plot.hamstr_bacon_fit}
 \title{Title}
 \usage{
-\method{plot}{hamstr_bacon_fit}(hamstr_bacon_fit, type = "default", summarise = TRUE, ...)
+\method{plot}{hamstr_bacon_fit}(
+  hamstr_bacon_fit,
+  type = c("default", "age_models", "acc_rates"),
+  summarise = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{a hamstr_bacon_fit object}
