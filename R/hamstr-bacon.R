@@ -435,6 +435,88 @@ plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
 }
 
 
+
+#' Extract Bacon Accumulation Rates
+#'
+#' @param hamstr_bacon_fit
+#' @return
+#' @keywords internal
+get_bacon_acc_rates <- function(hamstr_bacon_fit){
+  
+  bacon_ages <- predict(hamstr_bacon_fit, "age_models", "mod")
+  
+  bacon_acc <- bacon_ages %>% 
+    dplyr::group_by(iter) %>% 
+    dplyr::mutate(
+      idx = 1:dplyr::n(),
+      depth = depth,
+      c_depth_top = depth,
+      time_per_depth = c(diff(age) / diff(depth), NA),
+      depth_per_time = 1000 / time_per_depth) %>% 
+    dplyr::mutate(c_depth_bottom = c(tail(depth, -1), NA)) %>% 
+    dplyr::select(iter, idx, depth, c_depth_top, c_depth_bottom, time_per_depth, depth_per_time)
+  
+  return(bacon_acc)
+  
+}
+
+
+#' Summarise Bacon Accumulation Rates
+#'
+#' @param hamstr_bacon_fit
+#' @return
+#' @keywords internal
+summarise_bacon_acc_rates <- function(hamstr_bacon_fit){
+  
+  x <- get_bacon_acc_rates(hamstr_bacon_fit)
+  
+  x_sum <- x %>%
+    tidyr::pivot_longer(cols = c(time_per_depth, depth_per_time), names_to = "acc_rate_unit") %>%
+    dplyr::group_by(depth, c_depth_top, c_depth_bottom, acc_rate_unit, idx) %>%
+    dplyr::summarise(mean = mean(value),
+                     #se_mean = NA,
+                     sd = stats::sd(value),
+                     `2.5%` = stats::quantile(value, probs = c(0.025), na.rm = T),
+                     `25%` = stats::quantile(value, probs = c(0.25), na.rm = T),
+                     `50%` = stats::quantile(value, probs = c(0.50), na.rm = T),
+                     `75%` = stats::quantile(value, probs = c(0.75), na.rm = T),
+                     `97.5%` = stats::quantile(value, probs = c(0.975), na.rm = T)) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(acc_rate_unit, depth)
+  
+  return(x_sum)
+  
+}
+
+#' Plot summarised Bacon accumulation rates
+#'
+#' @param hamstr_bacon_fit
+#' @return
+#' @keywords internal
+plot_bacon_acc_rates <- function(hamstr_bacon_fit,
+                                 units = c("depth_per_time", "time_per_depth")){
+  
+  units <- match.arg(units,
+                     choices = c("depth_per_time", "time_per_depth"),
+                     several.ok = TRUE)
+  
+  acc_rates <- summarise_bacon_acc_rates(hamstr_bacon_fit)
+  
+  acc_rates_long <- acc_rates %>%
+    dplyr::select(-depth) %>%
+    tidyr::pivot_longer(cols = c("c_depth_top", "c_depth_bottom"),
+                 names_to = "depth_type", values_to = "depth")
+  
+  acc_rates_long %>%
+    dplyr::filter(acc_rate_unit %in% units) %>%
+    plot_downcore_summary(.) +
+    ggplot2::labs(x = "Depth", y = "Accumulation rate") +
+    ggplot2::facet_wrap(~acc_rate_unit, scales = "free_y")
+  
+}
+
+
+
 # Methods -------
 
 #' Interpolate Age Models at Given Depths
@@ -448,10 +530,15 @@ plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
 #' @examples
 #' @export
 #' @method predict hamstr_bacon_fit
-predict.hamstr_bacon_fit <- function(object, depth = "modelled"){
-
-  interpolate_bacon_age_models(object, depth)
-
+predict.hamstr_bacon_fit <- function(object, type = c("age_models", "acc_rates"),
+                               depth = c("modelled", "data"), ...){
+  
+  type <- match.arg(type)
+  
+  switch(type,
+         age_models = interpolate_bacon_age_models(object, depth),
+         acc_rates = get_bacon_acc_rates(object)
+  )
 }
 
 #' Title
@@ -463,14 +550,22 @@ predict.hamstr_bacon_fit <- function(object, depth = "modelled"){
 #' @export
 #' @method plot hamstr_bacon_fit
 plot.hamstr_bacon_fit <- function(hamstr_bacon_fit,
-                                  type = "default",
-                                  summarise = TRUE,
-                                  ...){
-
-  plot_hamstr_bacon_fit(hamstr_bacon_fit,
-                        summarise = summarise, ...)
-
+                            type = c("default",
+                                     "age_models",
+                                     "acc_rates"),
+                            summarise = TRUE,
+                            ...){
+  
+  type <- match.arg(type)
+  
+  switch(type,
+         default = plot_hamstr_bacon_fit(hamstr_bacon_fit, summarise = summarise, ...),
+         age_models = plot_hamstr_bacon_fit(hamstr_bacon_fit, summarise = summarise,
+                                            ...),
+         acc_rates = plot_bacon_acc_rates(hamstr_bacon_fit)
+         )
 }
+
 
 #' Summarise hamstr_bacon Age Models
 #'
@@ -482,9 +577,16 @@ plot.hamstr_bacon_fit <- function(hamstr_bacon_fit,
 #' @examples
 #' @export
 #' @method summary hamstr_bacon_fit
-summary.hamstr_bacon_fit <- function(object){
+summary.hamstr_bacon_fit <- function(object, type = c("default",
+                                                      "age_models",
+                                                      "acc_rates")){
 
-  summarise_bacon_age_models(object)
+  type <- match.arg(type)
+  switch(type,
+         default = summarise_bacon_age_models(object),
+         age_models = summarise_bacon_age_models(object),
+          acc_rates = summarise_bacon_acc_rates(object)
+  )
 
 }
 

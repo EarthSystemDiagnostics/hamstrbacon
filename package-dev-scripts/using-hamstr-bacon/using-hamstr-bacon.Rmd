@@ -101,8 +101,19 @@ summary(spec_depths)
 ```
 
 
+## Accumulation rates
 
+```{r}
+predict(hambac_5, type = "acc_rates")
+```
 
+```{r}
+plot(hambac_5, type = "acc_rates")
+```
+
+```{r}
+summary(hambac_5, type = "acc_rates")
+```
 
 
 
