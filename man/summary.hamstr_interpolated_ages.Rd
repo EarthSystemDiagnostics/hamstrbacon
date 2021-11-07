@@ -4,10 +4,10 @@
 \alias{summary.hamstr_interpolated_ages}
 \title{Title}
 \usage{
-\method{summary}{hamstr_interpolated_ages}(object, type = "age_models")
+\method{summary}{hamstr_interpolated_ages}(object)
 }
 \arguments{
-\item{type}{}
+\item{object}{hamstr_interpolated_ages object}
 }
 \value{
 

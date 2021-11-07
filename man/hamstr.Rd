@@ -24,8 +24,14 @@ hamstr(
   infl_sigma_sd = NULL,
   infl_shape_shape = 1,
   infl_shape_mean = 1,
+  model_bioturbation = FALSE,
+  n_ind = NULL,
+  L_prior_mean = 10,
+  L_prior_shape = 2,
+  L_prior_sigma = NULL,
   iter = 2000,
   chains = 3,
+  seed = NA,
   ...
 )
 }
@@ -113,16 +119,43 @@ times the mean observation error in obs_err.}
 gamma prior on the shape of the distribution of the additional error terms.
 Default to 1, 1.}
 
+\item{model_bioturbation}{Defaults to FALSE. If TRUE, additional uncertainty in the
+observed ages due to sediment mixing (bioturbation) is modelled via a latent 
+variable process. The amount of additional uncertainty is a function of the 
+mixing depth L, the sedimentation rate, and the number of particles 
+(e.g. individual foraminifera) per measured date. See description for details.}
+
+\item{n_ind}{The number of individual particles (e.g. Foraminifera) in each 
+sample that was dated by e.g. radiocarbon dating. This can be a single value
+or a vector the same length as obs_age.}
+
+\item{L_prior_mean}{Mean of the gamma prior on mixing depth, defaults to 10.}
+
+\item{L_prior_shape, L_prior_sigma}{Shape and standard deviation of the gamma
+prior on the mixing depth. Set only one of these, the other will be 
+calculated. Defaults to shape = 2. If either the shape or sigma parameter is 
+set to zero, the mixing depth is fixed at the value of L_prior_mean, rather 
+than being sampled with a gamma prior.}
+
 \item{iter}{A positive integer specifying the number of iterations for each 
     chain (including warmup). The default is 2000.}
 
 \item{chains}{A positive integer specifying the number of Markov chains. 
     The default is 4.}
 
+\item{seed}{The seed for random number generation. The default is generated 
+    from 1 to the maximum integer supported by \R on the machine. Even if 
+    multiple chains are used, only one seed is needed, with other chains having 
+    seeds derived from that of the first chain to avoid dependent samples.
+    When a seed is specified by a number, \code{as.integer} will be applied to it. 
+    If \code{as.integer} produces \code{NA}, the seed is generated randomly. 
+    The seed can also be specified as a character string of digits, such as
+    \code{"12345"}, which is converted to integer.}
+
 \item{...}{additional arguments to \link[rstan]{sampling}}
 }
 \value{
-Returns a list composed of the output from the Stan sampler .$fit,
+Returns a list composed of the output from the stan sampler .$fit,
   and the list of data passed to the sampler, .$data
 }
 \description{
