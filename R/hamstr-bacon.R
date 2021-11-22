@@ -144,6 +144,7 @@ hamstr_bacon <- function(
   #posterior <- info$output
 
   # create output, add class attributes and return
+  
   out <- list(pars = par_list, data = bacon_dat, info = info)
   class(out) <- append("hamstr_bacon_fit", class(out))
 
@@ -454,7 +455,8 @@ get_bacon_acc_rates <- function(hamstr_bacon_fit){
       time_per_depth = c(diff(age) / diff(depth), NA),
       depth_per_time = 1000 / time_per_depth) %>% 
     dplyr::mutate(c_depth_bottom = c(tail(depth, -1), NA)) %>% 
-    dplyr::select(iter, idx, depth, c_depth_top, c_depth_bottom, time_per_depth, depth_per_time)
+    dplyr::select(iter, idx, depth, c_depth_top, c_depth_bottom, time_per_depth, depth_per_time) %>% 
+    dplyr::filter(is.na(time_per_depth) == FALSE)
   
   return(bacon_acc)
   
@@ -562,7 +564,7 @@ plot.hamstr_bacon_fit <- function(hamstr_bacon_fit,
          default = plot_hamstr_bacon_fit(hamstr_bacon_fit, summarise = summarise, ...),
          age_models = plot_hamstr_bacon_fit(hamstr_bacon_fit, summarise = summarise,
                                             ...),
-         acc_rates = plot_bacon_acc_rates(hamstr_bacon_fit)
+         acc_rates = plot_hamstr_acc_rates(hamstr_bacon_fit, ...)
          )
 }
 
@@ -579,13 +581,13 @@ plot.hamstr_bacon_fit <- function(hamstr_bacon_fit,
 #' @method summary hamstr_bacon_fit
 summary.hamstr_bacon_fit <- function(object, type = c("default",
                                                       "age_models",
-                                                      "acc_rates")){
+                                                      "acc_rates"), ...){
 
   type <- match.arg(type)
   switch(type,
          default = summarise_bacon_age_models(object),
          age_models = summarise_bacon_age_models(object),
-          acc_rates = summarise_bacon_acc_rates(object)
+         acc_rates = summarise_hamstr_acc_rates(object, ...)
   )
 
 }

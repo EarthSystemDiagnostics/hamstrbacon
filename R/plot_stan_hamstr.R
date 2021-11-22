@@ -17,6 +17,7 @@
 #'   obs_err = MSB2K$error)
 #'
 #' plot(fit)
+#' plot(fit, type = "acc_rates", tau = 5, kern = "U")
 #' }
 #' @export
 #' @method plot hamstr_fit
@@ -396,7 +397,7 @@ plot_hamstr_acc_rates <- function(hamstr_fit,
 
   axis <- match.arg(axis,
                     #choices = c("depth_per_time", "time_per_depth"),
-                    several.ok = TRUE)
+                    several.ok = FALSE)
   
   kern <- match.arg(kern)
   
@@ -415,34 +416,42 @@ plot_hamstr_acc_rates <- function(hamstr_fit,
       plot_downcore_summary(.) +
       ggplot2::labs(x = "Depth", y = "Accumulation rate") +
       ggplot2::facet_wrap(~acc_rate_unit, scales = "free_y") +
-      ggplot2::scale_y_log10() +
-      ggplot2::annotation_logticks(sides = "l") +
+      #ggplot2::scale_y_log10() +
+      #ggplot2::annotation_logticks(sides = "l") +
       ggplot2::geom_rug(data = rug_dat, aes(x = d, colour = "DarkBlue"),
                         inherit.aes = FALSE)
     
-    p <- add_subdivisions(p, hamstr_fit = hamstr_fit)
+    if ("hamstr_fit" %in% class(hamstr_fit)){
+      p <- add_subdivisions(p, hamstr_fit = hamstr_fit)
+    }
+    
     
   } else if (axis == "age"){
     
     median_age <- summary(hamstr_fit) %>%
       #mutate(unit = "age") %>%
-      rename(age = `50%`) %>%
-      select(depth, age)
+      dplyr::rename(age = `50%`) %>%
+      dplyr::select(depth, age)
     
-    jnt <- left_join(median_age, acc_rates) %>%
-      filter(complete.cases(mean))
+    jnt <- dplyr::left_join(median_age, acc_rates) %>%
+      dplyr::filter(complete.cases(mean))
     
-    rug_dat <- data.frame(a = hamstr_fit$data$obs_age)
+    
     
     p <- jnt %>%
       dplyr::filter(acc_rate_unit %in% units) %>%
       plot_downcore_summary(., axis = "age") +
       ggplot2::labs(x = "Age", y = "Accumulation rate") +
-      ggplot2::facet_wrap(~acc_rate_unit, scales = "free_y") +
-      ggplot2::scale_y_log10() +
-      ggplot2::annotation_logticks(sides = "l") +
-      ggplot2::geom_rug(data = rug_dat, aes(x = a, colour = "DarkBlue"),
-                        inherit.aes = FALSE)
+      ggplot2::facet_wrap(~acc_rate_unit, scales = "free_y") #+
+      #ggplot2::scale_y_log10() +
+      #ggplot2::annotation_logticks(sides = "l")
+    
+    if ("hamstr_fit" %in% class(hamstr_fit)){
+      rug_dat <- data.frame(a = hamstr_fit$data$obs_age)
+      p <- p +
+        ggplot2::geom_rug(data = rug_dat, aes(x = a, colour = "DarkBlue"),
+                          inherit.aes = FALSE)
+    }
   }
   
   p
