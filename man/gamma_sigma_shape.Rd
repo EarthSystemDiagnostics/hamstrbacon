@@ -4,14 +4,14 @@
 \alias{gamma_sigma_shape}
 \title{Convert between parametrisations of the gamma distribution}
 \usage{
-gamma_sigma_shape(mean, sigma = NULL, shape = NULL)
+gamma_sigma_shape(mean = NULL, mode = NULL, sigma = NULL, shape = NULL)
 }
 \arguments{
-\item{mean}{}
+\item{mean}{Mean of gamma distribution}
 
-\item{sigma}{}
+\item{sigma}{Standard deviation of gamma distribution}
 
-\item{shape}{}
+\item{shape}{Shape of gamma distribution}
 }
 \value{
 a list

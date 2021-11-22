@@ -149,16 +149,35 @@ alpha_indices <- function(K){
 
 #' Convert between parametrisations of the gamma distribution
 #'
-#' @param mean 
-#' @param sigma 
-#' @param shape 
+#' @param mean Mean of gamma distribution
+#' @param sigma Standard deviation of gamma distribution
+#' @param shape Shape of gamma distribution
 #'
 #' @return a list
 #' @keywords internal
 #'
 #' @examples
 #' gamma_sigma_shape(mean = 10, sigma = 2)
-gamma_sigma_shape <- function(mean, sigma=NULL, shape=NULL){
+gamma_sigma_shape <- function(mean = NULL, mode = NULL, sigma=NULL, shape=NULL){
+  
+  if (is.null(mean) & is.null(mode)) stop("One of either the mean or mode must be specified")
+  if (is.null(shape) & is.null(sigma)) stop("One of either the shape or sigma must be specified")
+  
+  if (is.null(mean)==FALSE & is.null(mode)==FALSE) stop("Only one of the mean and mode can be specified")
+  if (is.null(shape)==FALSE & is.null(sigma)==FALSE) stop("Only one of the shape and sigma can be specified")
+  
+  if (is.null(mean)){
+    if (is.null(shape) == FALSE){
+      if (shape <= 1) stop("Gamma cannot be defined by mode and shape if shape <= 1")
+      mean <- (shape * mode) / (shape -1)
+    } else if (is.null(shape)){
+      shape <- -sigma^2 / (mode - sigma^2)
+      if (shape <= 1) stop("No solution for Gamma with this mode and sigma")
+      mean <- (shape * mode) / (shape -1)
+      rate <- shape / mean
+    }
+  }
+  
   if (is.null(sigma)){
     rate <- shape / mean
     sigma <- sqrt(shape/(rate^2))
@@ -166,7 +185,12 @@ gamma_sigma_shape <- function(mean, sigma=NULL, shape=NULL){
     rate <- mean / sigma^2
     shape <- mean^2 / sigma^2
   }
-  return(list(mean = mean, rate = rate, shape = shape, sigma = sigma))
+  
+  if (is.null(mode)){
+   mode <- (shape - 1) / rate 
+  }
+  
+  return(list(mean = mean, mode = mode, rate = rate, shape = shape, sigma = sigma))
 }
 
 
@@ -215,43 +239,42 @@ make_stan_dat_hamstr <- function(...) {
   l$obs_age <- l$obs_age[ord]
   l$obs_err <- l$obs_err[ord]
 
- 
+
     if (l$model_bioturbation == TRUE){
-      
+
       # check parameters
-      if (length(c(l$L_prior_sigma, l$L_prior_shape)) > 1) 
-        stop("Specify only one of either L_prior_sigma or L_prior_shape. 
-             The other will be calculated.")
-      
-      if (length(c(l$L_prior_sigma, l$L_prior_shape)) == 0) 
-        stop("One of either L_prior_sigma or L_prior_shape must be specified. 
+      if (is.null(l$L_prior_sigma) == FALSE)
+        message("L_prior_shape is being overriden by L_prior_sigma.")
+
+      if (length(c(l$L_prior_sigma, l$L_prior_shape)) == 0)
+        stop("One of either L_prior_sigma or L_prior_shape must be specified.
              Set either to 0 to impose a fixed mixing depth.")
-      
-      if ((length(l$n_ind) == 1 | length(l$n_ind) == length(l$obs_age)) == FALSE) 
+
+      if ((length(l$n_ind) == 1 | length(l$n_ind) == length(l$obs_age)) == FALSE)
         stop("n_ind must be either a single value or a vector the same length as obs_age")
-      
+
       if (length(l$n_ind == 1)) l$n_ind <- rep(l$n_ind, length(l$obs_age))
-      
+
       l$n_ind <- l$n_ind[ord]
-      
-      if (is.null(l$L_prior_shape)) {
-        if (l$L_prior_sigma == 0) l$L_prior_shape <- 0 else 
+
+      if (is.null(l$L_prior_sigma) == FALSE) {
+        if (l$L_prior_sigma == 0) l$L_prior_shape <- 0 else
           l$L_prior_shape <- gamma_sigma_shape(l$L_prior_mean, l$L_prior_sigma)$shape
       }
-      
+
     } else if(l$model_bioturbation == FALSE){
       l$n_ind <- numeric(0)
     }
-    
-    
+
+
     if (is.null(l$infl_sigma_sd)){
       l$infl_sigma_sd <- 10 * mean(l$obs_err)
     }
-    
+
     if (l$min_age > min(l$obs_age)) {
       warning("min_age is older than minimum obs_age")
     }
-    
+
     if (l$pad_top_bottom == TRUE){
       # Set start depth to 5% less than first depth observation, and DO allow negative depths
       depth_range <- diff(range(l$depth))
@@ -259,58 +282,68 @@ make_stan_dat_hamstr <- function(...) {
     } else {
       buff <- 0
     }
-    
+
     if (is.null(l$top_depth)) l$top_depth <- l$depth[1] - buff
-    
+
     if (is.null(l$bottom_depth)) l$bottom_depth <- utils::tail(l$depth, 1) + buff
-    
+
     depth_range <- l$bottom_depth - l$top_depth
-    
+
     if(l$top_depth > min(l$depth)) stop("top_depth must be above or equal to the shallowest data point")
     if(l$bottom_depth < max(l$depth)) stop("bottom_depth must be deeper or equal to the deepest data point")
-    
-    
+
+
     if (is.null(l$K)){
-      K_fine <- l$bottom_depth - l$top_depth
+      K_fine_1 <- l$bottom_depth - l$top_depth
+
+      # set resolution so that there are only 10
+      # sections between the median spaced 2 data points
+      min.d.depth <- median(diff(sort(unique(l$depth))))
+      K_fine_2 <- round(10 * K_fine_1 / min.d.depth )
+
+      K_fine <- min(c(K_fine_1, K_fine_2))
+
+      # prevent default values higher than 900
       if (K_fine > 900) K_fine <- 900
+
       l$K <- default_K(K_fine)
-    }
-    
-    
+      }
+
+
     # Transformed arguments
     l$N <- length(l$depth)
-    
+
     stopifnot(l$N == length(l$obs_err), l$N == length(l$obs_age))#, l$N == length(l$n_ind))
-    
+
     alpha_idx <- alpha_indices(l$K)
-    
+
     l$K_tot <- sum(alpha_idx$nK)
     l$K_fine <- utils::tail(alpha_idx$nK, 1)
     l$c <- 1:l$K_fine
-    
+
     l$mem_alpha = l$mem_strength * l$mem_mean
     l$mem_beta = l$mem_strength * (1-l$mem_mean)
-    
+
     l$mem_mean = l$mem_mean
     l$mem_strength = l$mem_strength
-    
+
     l$delta_c = depth_range / l$K_fine
     l$c_depth_bottom = l$delta_c * l$c + l$top_depth
     l$c_depth_top = c(l$top_depth, l$c_depth_bottom[1:(l$K_fine-1)])
-    
+
     l$modelled_depths <- c(l$c_depth_top[1], l$c_depth_bottom)
-    
+
     # Index for which sections the target depth is in
     l$which_c = sapply(l$depth, function(d) which.max((l$c_depth_bottom < d) * (l$c_depth_bottom - d) ))
-    
+
     l <- append(l, alpha_idx)
-    
+
     l$n_lvls <- length(l$K)
     l$scale_shape = as.numeric(l$scale_shape)
     l$model_bioturbation = as.numeric(l$model_bioturbation)
     #l$K_idx <- l$lvl - 1
 
-  
+
   return(l)
 }
 
