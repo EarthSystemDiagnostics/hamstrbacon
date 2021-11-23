@@ -313,13 +313,13 @@ predict.hamstr_fit <- function(object, type = c("age_models", "acc_rates"),
 #' }
 #' @export
 #' @method summary hamstr_fit
-summary.hamstr_fit <- function(object, type = c("age_models", "acc_rates")){
+summary.hamstr_fit <- function(object, type = c("age_models", "acc_rates"), ...){
 
   type <- match.arg(type)
 
   switch(type,
          age_models = summarise_age_models(object),
-         acc_rates = summarise_hamstr_acc_rates(object)
+         acc_rates = summarise_hamstr_acc_rates(object, ...)
   )
 }
 
@@ -334,7 +334,6 @@ summary.hamstr_fit <- function(object, type = c("age_models", "acc_rates")){
 summary.hamstr_interpolated_ages <- function(object){
     summarise_new_ages(object)
   }
-
 
 
 
@@ -387,19 +386,86 @@ get_posterior_acc_rates <- function(hamstr_fit){
 
 }
 
+#' Smooth accumulation rates
+#'
+#' @param hamstr_acc_rates Accumulation rates from get_posterior_acc_rates
+#' @param tau Scale of the smoothing kernel in depth units. If tau > 0,
+#'  accumulation rates are smoothed (filtered) before summary statistics are 
+#'  calculated, so that the accumulation rate at a given depth corresponds to the
+#'  average rate over the depth interval tau. Default to 0. 
+#' @param kern Choice of smoothin kernal. U for uniform (moving average), G for
+#'  Gaussian, BH for Berger and Heath (exponential). Defaults to U
+#' @return
+#' @keywords internal
+filter_hamstr_acc_rates <- function(hamstr_acc_rates, tau, kern){
+  
+  
+  if (tau > 0){
+    # scale tau by delta_c
+    tau <- tau / diff(hamstr_acc_rates$depth[1:2])
+    
+    if (kern == "G"){
+      
+      fl <- ceiling(2*tau)+1
+      z <- (-fl):fl
+      f <- dnorm(z, 0, tau)
+      f <- f / sum(f)  
+      
+    } else if (kern == "BH"){
+      
+      fl <- (3 * tau+1)
+      z  <- (-3*tau):(3*tau)
+      
+      # PDF of Berger and Heath
+      f  <- dexp(z+tau, 1/tau)
+      f <- f / sum(f)
+    }  else if (kern == "U"){
+      
+      fl <- ceiling(tau/2)
+      z  <- (-tau/2):(tau/2)
+      
+      f <- dunif(z, (-tau/2), tau/2)
+      f <- f / sum(f)
+    }
+    
+    #if (tau > 0) plot(z, f)
+    
+  }
+  
+  x_sum <- hamstr_acc_rates %>% 
+    dplyr::group_by(iter) %>% 
+    dplyr::mutate(time_per_depth = if (tau == 0) {time_per_depth} else {
+      # pad the vector with reversed head and tail
+      # fl is half the filter length
+      stats::filter(
+        c(rev(head(time_per_depth, fl)), time_per_depth, rev(tail(time_per_depth, fl))),
+        filter = f)[(fl+1):(dplyr::n()+fl)]
+    }) %>% 
+    dplyr::mutate(depth_per_time = 1000 * 1/time_per_depth)%>%
+    tidyr::pivot_longer(cols = c(time_per_depth, depth_per_time),
+                        names_to = "acc_rate_unit") 
+  
+  x_sum
+  
+}
 
 #' Summarise accumulation rates
 #'
-#' @param hamstr_fit
-#'
+#' @param hamstr_fit A hamstr_fit object
+#' @inheritParams filter_hamstr_acc_rates
 #' @return
 #' @keywords internal
-summarise_hamstr_acc_rates <- function(hamstr_fit){
+summarise_hamstr_acc_rates <- function(hamstr_fit,
+                                       tau = 0,
+                                       kern = c("U", "G", "BH")
+                                       ){
 
-  x <- get_posterior_acc_rates(hamstr_fit)
-
+  kern <- match.arg(kern)
+  
+  x <- predict(hamstr_fit, type = "acc_rates")
+  x <- filter_hamstr_acc_rates(x, tau, kern)
+  
   x_sum <- x %>%
-    tidyr::pivot_longer(cols = c(time_per_depth, depth_per_time), names_to = "acc_rate_unit") %>%
     dplyr::group_by(depth, c_depth_top, c_depth_bottom, acc_rate_unit, idx) %>%
     dplyr::summarise(mean = mean(value),
                      #se_mean = NA,
@@ -411,7 +477,7 @@ summarise_hamstr_acc_rates <- function(hamstr_fit){
                      `97.5%` = stats::quantile(value, probs = c(0.975), na.rm = T)) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(acc_rate_unit, depth)
-
+  
   return(x_sum)
 
 }

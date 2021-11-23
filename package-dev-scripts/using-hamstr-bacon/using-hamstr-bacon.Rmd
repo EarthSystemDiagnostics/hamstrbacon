@@ -33,15 +33,15 @@ First run a hamstr model for comparison.
 
 
 ```{r}
-hamstr_10_10 <- hamstr(depth = MSB2K_cal$depth,
+hamstr_1 <- hamstr(depth = MSB2K_cal$depth,
                    obs_age = MSB2K_cal$age.14C.cal,
                    obs_err = MSB2K_cal$age.14C.cal.se,
-                   K = c(10, 10),
+                   #K = c(10, 10),
                    cores = 3)
 ```
 
 ```{r}
-plot(hamstr_10_10, plot_diagnostics = FALSE)
+plot(hamstr_1, plot_diagnostics = FALSE)
 ```
 
 
@@ -109,6 +109,10 @@ predict(hambac_5, type = "acc_rates")
 
 ```{r}
 plot(hambac_5, type = "acc_rates")
+```
+
+```{r}
+plot(hambac_5, type = "acc_rates",  tau = 10)
 ```
 
 ```{r}

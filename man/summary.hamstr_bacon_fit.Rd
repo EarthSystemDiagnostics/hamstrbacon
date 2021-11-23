@@ -4,7 +4,7 @@
 \alias{summary.hamstr_bacon_fit}
 \title{Summarise hamstr_bacon Age Models}
 \usage{
-\method{summary}{hamstr_bacon_fit}(object, type = c("default", "age_models", "acc_rates"))
+\method{summary}{hamstr_bacon_fit}(object, type = c("default", "age_models", "acc_rates"), ...)
 }
 \arguments{
 \item{type}{}
