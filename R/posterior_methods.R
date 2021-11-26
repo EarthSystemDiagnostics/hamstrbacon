@@ -282,14 +282,17 @@ summarise_age_models <- function(hamstr_fit){
 #' @export
 #' @method predict hamstr_fit
 predict.hamstr_fit <- function(object, type = c("age_models", "acc_rates"),
-                               depth = c("modelled", "data"), ...){
+                               depth = c("modelled", "data"),
+                               #tau = 0,
+                               #kern = c("U", "G", "BH"),
+                               ...){
   
   type <- match.arg(type)
   
-  
   switch(type,
          age_models = interpolate_age_models(object, depth),
-         acc_rates = get_posterior_acc_rates(object)
+         acc_rates = get_posterior_acc_rates(object, #tau = tau, kern = kern,
+                                             ...)
   )
 }
 
@@ -313,13 +316,17 @@ predict.hamstr_fit <- function(object, type = c("age_models", "acc_rates"),
 #' }
 #' @export
 #' @method summary hamstr_fit
-summary.hamstr_fit <- function(object, type = c("age_models", "acc_rates"), ...){
+summary.hamstr_fit <- function(object, type = c("age_models", "acc_rates"),
+                               #tau = 0, kern = c("U", "G", "BH"),
+                               ...){
 
   type <- match.arg(type)
 
   switch(type,
          age_models = summarise_age_models(object),
-         acc_rates = summarise_hamstr_acc_rates(object, ...)
+         acc_rates = summarise_hamstr_acc_rates(object,
+                                                #tau = tau, kern = kern,
+                                                ...)
   )
 }
 
@@ -342,6 +349,7 @@ summary.hamstr_interpolated_ages <- function(object){
 #' Get Posterior Accumulation Rates
 #'
 #' @inheritParams plot_hamstr
+#' @inheritParams filter_hamstr_acc_rates
 #'
 #' @return a dataframe/tibble with posterior ages for all iterations after warmup
 #' @export
@@ -361,7 +369,7 @@ summary.hamstr_interpolated_ages <- function(object){
 #'
 #' get_posterior_acc_rates(fit)
 #' }
-get_posterior_acc_rates <- function(hamstr_fit){
+get_posterior_acc_rates <- function(hamstr_fit, tau = 0, kern = c("U", "G", "BH")){
 
   depths <- tibble::as_tibble(
     hamstr_fit$data[c("c", "c_depth_top", "c_depth_bottom")]
@@ -379,8 +387,12 @@ get_posterior_acc_rates <- function(hamstr_fit){
     dplyr::mutate(depth_per_time = 1000/time_per_depth) %>%
     dplyr::arrange(.data$par, .data$iter, .data$idx, .data$depth) %>%
     dplyr::select(iter, idx, depth, c_depth_top, c_depth_bottom, time_per_depth, depth_per_time)
-
+  
   class(out) <- append("hamstr_acc_rates", class(out))
+
+  #if (tau > 0){
+    out <- filter_hamstr_acc_rates(out, tau = tau, kern = kern)
+  #}
 
   return(out)
 
@@ -397,54 +409,57 @@ get_posterior_acc_rates <- function(hamstr_fit){
 #'  Gaussian, BH for Berger and Heath (exponential). Defaults to U
 #' @return
 #' @keywords internal
-filter_hamstr_acc_rates <- function(hamstr_acc_rates, tau, kern){
+filter_hamstr_acc_rates <- function(hamstr_acc_rates, tau = 0, kern = c("U", "G", "BH")){
+  
+  kern <- match.arg(kern)
+  
+  # scale tau by delta_c
+  tau_scl <- tau / diff(hamstr_acc_rates$depth[1:2])
   
   
   if (tau > 0){
-    # scale tau by delta_c
-    tau <- tau / diff(hamstr_acc_rates$depth[1:2])
     
     if (kern == "G"){
       
-      fl <- ceiling(2*tau)+1
+      fl <- ceiling(2*tau_scl)+1
       z <- (-fl):fl
-      f <- dnorm(z, 0, tau)
+      f <- dnorm(z, 0, tau_scl)
       f <- f / sum(f)  
       
     } else if (kern == "BH"){
       
-      fl <- (3 * tau+1)
-      z  <- (-3*tau):(3*tau)
+      fl <- (3 * tau_scl+1)
+      z  <- (-3*tau_scl):(3*tau_scl)
       
       # PDF of Berger and Heath
-      f  <- dexp(z+tau, 1/tau)
+      f  <- dexp(z+tau_scl, 1/tau_scl)
       f <- f / sum(f)
     }  else if (kern == "U"){
       
-      fl <- ceiling(tau/2)
-      z  <- (-tau/2):(tau/2)
+      fl <- ceiling(tau_scl/2)
+      z  <- (-tau_scl/2):(tau_scl/2)
       
-      f <- dunif(z, (-tau/2), tau/2)
+      f <- dunif(z, (-tau_scl/2), tau_scl/2)
       f <- f / sum(f)
     }
     
-    #if (tau > 0) plot(z, f)
+    #if (tau_scl > 0) plot(z, f)
     
   }
   
   x_sum <- hamstr_acc_rates %>% 
     dplyr::group_by(iter) %>% 
-    dplyr::mutate(time_per_depth = if (tau == 0) {time_per_depth} else {
+    dplyr::mutate(time_per_depth = if (tau_scl == 0) {time_per_depth} else {
       # pad the vector with reversed head and tail
       # fl is half the filter length
       stats::filter(
         c(rev(head(time_per_depth, fl)), time_per_depth, rev(tail(time_per_depth, fl))),
         filter = f)[(fl+1):(dplyr::n()+fl)]
     }) %>% 
-    dplyr::mutate(depth_per_time = 1000 * 1/time_per_depth)%>%
-    tidyr::pivot_longer(cols = c(time_per_depth, depth_per_time),
-                        names_to = "acc_rate_unit") 
+    dplyr::mutate(depth_per_time = 1000 * 1/time_per_depth, 
+                  tau = tau)
   
+
   x_sum
   
 }
@@ -457,16 +472,17 @@ filter_hamstr_acc_rates <- function(hamstr_acc_rates, tau, kern){
 #' @keywords internal
 summarise_hamstr_acc_rates <- function(hamstr_fit,
                                        tau = 0,
-                                       kern = c("U", "G", "BH")
+                                       kern =  c("U", "G", "BH")
                                        ){
 
   kern <- match.arg(kern)
   
-  x <- predict(hamstr_fit, type = "acc_rates")
-  x <- filter_hamstr_acc_rates(x, tau, kern)
-  
+  x <- predict(hamstr_fit, type = "acc_rates", tau = tau, kern = kern) %>%
+    tidyr::pivot_longer(cols = c(time_per_depth, depth_per_time),
+                        names_to = "acc_rate_unit") 
+
   x_sum <- x %>%
-    dplyr::group_by(depth, c_depth_top, c_depth_bottom, acc_rate_unit, idx) %>%
+    dplyr::group_by(depth, c_depth_top, c_depth_bottom, acc_rate_unit, idx, tau) %>%
     dplyr::summarise(mean = mean(value),
                      #se_mean = NA,
                      sd = stats::sd(value),
