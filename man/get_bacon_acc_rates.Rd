@@ -4,7 +4,7 @@
 \alias{get_bacon_acc_rates}
 \title{Extract Bacon Accumulation Rates}
 \usage{
-get_bacon_acc_rates(hamstr_bacon_fit)
+get_bacon_acc_rates(hamstr_bacon_fit, tau = 0, kern = c("U", "G", "BH"))
 }
 \value{
 
