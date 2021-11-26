@@ -283,6 +283,7 @@ summarise_age_models <- function(hamstr_fit){
 #' @method predict hamstr_fit
 predict.hamstr_fit <- function(object, type = c("age_models", "acc_rates"),
                                depth = c("modelled", "data"),
+                               tau = 0,
                                kern = c("U", "G", "BH"),
                                ...){
   
@@ -290,7 +291,8 @@ predict.hamstr_fit <- function(object, type = c("age_models", "acc_rates"),
   
   switch(type,
          age_models = interpolate_age_models(object, depth),
-         acc_rates = get_posterior_acc_rates(object, ...)
+         acc_rates = get_posterior_acc_rates(object, tau = tau,
+                                             kern = kern, ...)
   )
 }
 
@@ -314,13 +316,16 @@ predict.hamstr_fit <- function(object, type = c("age_models", "acc_rates"),
 #' }
 #' @export
 #' @method summary hamstr_fit
-summary.hamstr_fit <- function(object, type = c("age_models", "acc_rates"), ...){
+summary.hamstr_fit <- function(object, type = c("age_models", "acc_rates"),
+                               tau = 0, kern = c("U", "G", "BH"), ...){
 
   type <- match.arg(type)
 
   switch(type,
          age_models = summarise_age_models(object),
-         acc_rates = summarise_hamstr_acc_rates(object, ...)
+         acc_rates = summarise_hamstr_acc_rates(object,
+                                                tau = tau, kern = kern,
+                                                ...)
   )
 }
 
@@ -384,9 +389,9 @@ get_posterior_acc_rates <- function(hamstr_fit, tau = 0, kern = c("U", "G", "BH"
   
   class(out) <- append("hamstr_acc_rates", class(out))
 
-  if (tau > 0){
+  #if (tau > 0){
     out <- filter_hamstr_acc_rates(out, tau = tau, kern = kern)
-  }
+  #}
 
   return(out)
 
@@ -407,9 +412,11 @@ filter_hamstr_acc_rates <- function(hamstr_acc_rates, tau = 0, kern = c("U", "G"
   
   kern <- match.arg(kern)
   
+  # scale tau by delta_c
+  tau_scl <- tau / diff(hamstr_acc_rates$depth[1:2])
+  
+  
   if (tau > 0){
-    # scale tau by delta_c
-    tau_scl <- tau / diff(hamstr_acc_rates$depth[1:2])
     
     if (kern == "G"){
       
@@ -467,7 +474,7 @@ summarise_hamstr_acc_rates <- function(hamstr_fit,
                                        kern =  c("U", "G", "BH")
                                        ){
 
-  #kern <- match.arg(kern)
+  kern <- match.arg(kern)
   
   x <- predict(hamstr_fit, type = "acc_rates", tau = tau, kern = kern) %>%
     tidyr::pivot_longer(cols = c(time_per_depth, depth_per_time),

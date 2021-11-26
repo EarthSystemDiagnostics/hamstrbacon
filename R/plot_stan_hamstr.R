@@ -31,6 +31,7 @@ plot.hamstr_fit <- function(object,
                               "L_prior_post",
                               "PDF_14C"
                               ),
+                            tau = 0, kern = c("U", "G", "BH"),
                             summarise = TRUE,
                             ...){
 
@@ -40,7 +41,8 @@ plot.hamstr_fit <- function(object,
          default = plot_hamstr(object, summarise = summarise, ...),
          age_models = plot_hamstr(object, summarise = summarise,
                                   plot_diagnostics  = FALSE, ...),
-         acc_rates = plot_hamstr_acc_rates(object, ...),
+         acc_rates = plot_hamstr_acc_rates(object, tau = tau,
+                                           kern = kern, ...),
          hier_acc_rates = plot_hierarchical_acc_rate(object),
          acc_mean_prior_post = plot_acc_mean_prior_posterior(object),
          mem_prior_post = plot_memory_prior_posterior(object),
