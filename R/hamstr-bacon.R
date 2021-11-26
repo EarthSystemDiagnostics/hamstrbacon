@@ -459,9 +459,9 @@ get_bacon_acc_rates <- function(hamstr_bacon_fit, tau = 0, kern = c("U", "G", "B
     dplyr::filter(is.na(time_per_depth) == FALSE)
   
   
-  if (tau > 0){
+  #if (tau > 0){
     bacon_acc <- filter_hamstr_acc_rates(bacon_acc, tau = tau, kern = kern)
-  }
+  #}
   
   return(bacon_acc)
   
@@ -539,7 +539,8 @@ plot_bacon_acc_rates <- function(hamstr_bacon_fit,
 #' @method predict hamstr_bacon_fit
 predict.hamstr_bacon_fit <- function(object, type = c("age_models", "acc_rates"),
                                depth = c("modelled", "data"),
-                               tau = 0, kern = c("U", "G", "BH"), ...){
+                               #tau = 0, kern = c("U", "G", "BH"),
+                               ...){
   
   type <- match.arg(type)
   
@@ -561,7 +562,7 @@ plot.hamstr_bacon_fit <- function(hamstr_bacon_fit,
                             type = c("default",
                                      "age_models",
                                      "acc_rates"),
-                            tau = 0, kern = c("U", "G", "BH"),
+                            #tau = 0, kern = c("U", "G", "BH"),
                             summarise = TRUE,
                             ...){
   

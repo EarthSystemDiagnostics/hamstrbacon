@@ -7,8 +7,6 @@
 \method{plot}{hamstr_bacon_fit}(
   hamstr_bacon_fit,
   type = c("default", "age_models", "acc_rates"),
-  tau = 0,
-  kern = c("U", "G", "BH"),
   summarise = TRUE,
   ...
 )
