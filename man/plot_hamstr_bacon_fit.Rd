@@ -7,7 +7,14 @@
 plot_hamstr_bacon_fit(hamstr_bacon_fit, summarise = TRUE, n.iter = 1000)
 }
 \arguments{
-\item{n.iter}{}
+\item{hamstr_bacon_fit}{a hamstr_bacon_fit object}
+
+\item{summarise}{logical TRUE or FALSE. Plot the realisations as a summarised
+"ribbon" showing 50% and 95% intervals (faster), or as a spaghetti plot
+showing individual realisations. Defaults to TRUE (ribbon).}
+
+\item{n.iter}{The number of iterations of the model to plot, defaults to
+1000.}
 }
 \value{
 

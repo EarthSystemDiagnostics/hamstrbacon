@@ -7,7 +7,10 @@
 interpolate_bacon_age_models(hamstr_bacon_fit, depth)
 }
 \arguments{
-\item{depth}{}
+\item{hamstr_bacon_fit}{a hamstr_bacon_fit object}
+
+\item{depth}{a vector of depths at which to interpolate the age models.
+If left NULL, the depths of the age control points are used.}
 }
 \value{
 

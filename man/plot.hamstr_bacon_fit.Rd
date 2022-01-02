@@ -12,7 +12,7 @@
 )
 }
 \arguments{
-\item{object}{a hamstr_bacon_fit object}
+\item{hamstr_bacon_fit}{a hamstr_bacon_fit object}
 }
 \value{
 A ggplot object

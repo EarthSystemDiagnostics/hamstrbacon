@@ -7,7 +7,7 @@
 return_bacon_age_mods(hamstr_bacon_fit)
 }
 \arguments{
-\item{hamstr_bacon_fit}{}
+\item{hamstr_bacon_fit}{a hamstr_bacon_fit object}
 }
 \value{
 

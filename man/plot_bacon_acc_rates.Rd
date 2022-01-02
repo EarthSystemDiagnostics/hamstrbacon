@@ -2,69 +2,20 @@
 % Please edit documentation in R/hamstr-bacon.R
 \name{plot_bacon_acc_rates}
 \alias{plot_bacon_acc_rates}
-\title{#' Summarise Bacon Accumulation Rates
-#'
-#' @param hamstr_bacon_fit
-#' @return
-#' @keywords internal
-summarise_bacon_acc_rates <- function(hamstr_bacon_fit){
-  
-  x <- get_bacon_acc_rates(hamstr_bacon_fit)
-  
-  x_sum <- x %>%
-    tidyr::pivot_longer(cols = c(time_per_depth, depth_per_time), names_to = "acc_rate_unit") %>%
-    dplyr::group_by(depth, c_depth_top, c_depth_bottom, acc_rate_unit, idx) %>%
-    dplyr::summarise(mean = mean(value),
-                     #se_mean = NA,
-                     sd = stats::sd(value),
-                     `2.5%` = stats::quantile(value, probs = c(0.025), na.rm = T),
-                     `25%` = stats::quantile(value, probs = c(0.25), na.rm = T),
-                     `50%` = stats::quantile(value, probs = c(0.50), na.rm = T),
-                     `75%` = stats::quantile(value, probs = c(0.75), na.rm = T),
-                     `97.5%` = stats::quantile(value, probs = c(0.975), na.rm = T)) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(acc_rate_unit, depth)
-  
-  return(x_sum)
-  
-}
-Plot summarised Bacon accumulation rates}
+\title{Plot summarised Bacon accumulation rates}
 \usage{
 plot_bacon_acc_rates(
   hamstr_bacon_fit,
   units = c("depth_per_time", "time_per_depth")
 )
 }
+\arguments{
+\item{hamstr_bacon_fit}{a hamstr_bacon_fit object}
+}
 \value{
 
 }
 \description{
-#' Summarise Bacon Accumulation Rates
-#'
-#' @param hamstr_bacon_fit
-#' @return
-#' @keywords internal
-summarise_bacon_acc_rates <- function(hamstr_bacon_fit){
-  
-  x <- get_bacon_acc_rates(hamstr_bacon_fit)
-  
-  x_sum <- x %>%
-    tidyr::pivot_longer(cols = c(time_per_depth, depth_per_time), names_to = "acc_rate_unit") %>%
-    dplyr::group_by(depth, c_depth_top, c_depth_bottom, acc_rate_unit, idx) %>%
-    dplyr::summarise(mean = mean(value),
-                     #se_mean = NA,
-                     sd = stats::sd(value),
-                     `2.5%` = stats::quantile(value, probs = c(0.025), na.rm = T),
-                     `25%` = stats::quantile(value, probs = c(0.25), na.rm = T),
-                     `50%` = stats::quantile(value, probs = c(0.50), na.rm = T),
-                     `75%` = stats::quantile(value, probs = c(0.75), na.rm = T),
-                     `97.5%` = stats::quantile(value, probs = c(0.975), na.rm = T)) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(acc_rate_unit, depth)
-  
-  return(x_sum)
-  
-}
 Plot summarised Bacon accumulation rates
 }
 \keyword{internal}

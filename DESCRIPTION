@@ -1,46 +1,23 @@
-Package: hamstr
+Package: hamstrbacon
 Type: Package
-Title: Hierarchical Accumulation Modelling with Stan and R
-Version: 0.6.0
+Title: Interface Between the rbacon and hamstr packages
+Version: 0.1.0
 Encoding: UTF-8
 Authors@R: c(person("Andrew", "Dolman", email = "andrew.dolman@awi.de", role = c("aut", "cre")))
-Description: hamstr implements a "Bacon-like" Bayesian sediment accumulation or age-depth model with hierarchically structured multi-resolution discrete sediment sections. The Bayesian model is implemented in the Stan probabilistic programming language (https://mc-stan.org/). "Blaauw, Maarten, and J. Andrés Christen. 2011. 'Flexible Paleoclimate   Age-Depth Models Using an Autoregressive Gamma Process.'  Bayesian Analysis 6 (3): 457-74. doi:10.1214/ba/1339616472"
+Description: hamstrbacon provides an interface between rbacon and hamstr so that Bacon models can be created and plotted using as similar interface to hamstr. "Blaauw, Maarten, and J. Andrés Christen. 2011. 'Flexible Paleoclimate   Age-Depth Models Using an Autoregressive Gamma Process.'  Bayesian Analysis 6 (3): 457-74. doi:10.1214/ba/1339616472"
 License: GPL-3
 LazyData: true
-Biarch: true
+Biarch: false
 Depends: 
     R (>= 3.5.0)
 Imports: 
-    stats,
-    MASS, 
-    utils,
-    ggplot2,
-    tibble,
-    plyr,
-    rlang,
-    dplyr,
-    tidyr,
-    readr,
-    ggpubr,
-    magrittr,
-    methods,
-    Rcpp (>= 0.12.0),
-    RcppParallel (>= 5.0.1),
-    rstan (>= 2.18.1),
-    rstantools (>= 2.1.1),
-    Bchron
-LinkingTo: 
-    BH (>= 1.66.0),
-    Rcpp (>= 0.12.0),
-    RcppEigen (>= 0.3.3.3.0),
-    RcppParallel (>= 5.0.1),
-    rstan (>= 2.18.1),
-    StanHeaders (>= 2.18.0)
-SystemRequirements: GNU make
+    hamstr,
+    rbacon,
+    magrittr
+Remotes: 
+    earthsystemdiagnostics/hamstr
 RoxygenNote: 7.1.1
 Suggests: 
-    knitr,
-    rmarkdown,
-    rbacon (>= 2.5.2),
-    testthat
+    testthat,
+    knitr
 VignetteBuilder: knitr

@@ -172,7 +172,7 @@ hamstr_bacon <- function(
 
 #' Extract and reconstruct bacon age models
 #'
-#' @param hamstr_bacon_fit
+#' @inheritParams plot_hamstr_bacon_fit
 #'
 #' @return
 #'
@@ -207,11 +207,10 @@ return_bacon_age_mods <- function(hamstr_bacon_fit){
 
 #' Title
 #'
-#' @param hamstr_bacon_fit
-#' @param depth
+#' @inheritParams plot_hamstr_bacon_fit
+#' @inheritParams hamstr:::interpolate_age_models
 #'
 #' @return
-#'
 #' @keywords internal
 interpolate_bacon_age_models <- function(hamstr_bacon_fit, depth){
 
@@ -313,10 +312,8 @@ summarise_interpolated_bacon_age_models <- function(interpolated_age_mods){
 
 
 #' Title
-#'
-#' @param hamstr_bacon_fit
-#' @param summarise
-#' @param n.iter
+#' @param hamstr_bacon_fit a hamstr_bacon_fit object
+#' @inheritParams hamstr:::plot_hamstr
 #'
 #' @return
 #' @keywords internal
@@ -344,7 +341,7 @@ get_bacon_obs_ages <- function(hamstr_bacon_fit){
                      function(x) {
                        # suppress warnings about modes as mode not used anyway
                        suppressWarnings(
-                         SummariseEmpiricalPDF(x[,1], x[,2])
+                         hamstr:::SummariseEmpiricalPDF(x[,1], x[,2])
                          )
                        })
 
@@ -363,8 +360,8 @@ get_bacon_obs_ages <- function(hamstr_bacon_fit){
 
 #' Plot individual Bacon age models
 #'
-#' @param hamstr_bacon_fit
-#' @param n.iter
+#' @param hamstr_bacon_fit a hamstr_bacon_fit object
+#' @inheritParams hamstr:::plot_hamstr
 #'
 #' @return
 #' @keywords internal
@@ -375,7 +372,7 @@ plot_bacon_age_models <- function(hamstr_bacon_fit, n.iter = 1000){
                      function(x) {
                        # suppress warnings about modes as mode not used anyway
                        suppressWarnings(
-                       SummariseEmpiricalPDF(x[,1], x[,2])
+                       hamstr:::SummariseEmpiricalPDF(x[,1], x[,2])
                        )
                        })
 
@@ -421,7 +418,7 @@ plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
   obs_ages <- get_bacon_obs_ages(hamstr_bacon_fit)
 
   p.age.sum <- age_summary %>%
-    plot_downcore_summary(.) +
+    hamstr:::plot_downcore_summary(.) +
     ggplot2::labs(x = "Depth", y = "Age")
 
   p.age.sum <- p.age.sum +
@@ -439,7 +436,8 @@ plot_summary_bacon_age_models <- function(hamstr_bacon_fit){
 
 #' Extract Bacon Accumulation Rates
 #'
-#' @param hamstr_bacon_fit
+#' @param hamstr_bacon_fit a hamstr_bacon_fit object
+#' @inheritParams hamstr:::plot_hamstr
 #' @return
 #' @keywords internal
 get_bacon_acc_rates <- function(hamstr_bacon_fit, tau = 0, kern = c("U", "G", "BH")){
@@ -460,7 +458,7 @@ get_bacon_acc_rates <- function(hamstr_bacon_fit, tau = 0, kern = c("U", "G", "B
   
   
   #if (tau > 0){
-    bacon_acc <- filter_hamstr_acc_rates(bacon_acc, tau = tau, kern = kern)
+    bacon_acc <- hamstr:::filter_hamstr_acc_rates(bacon_acc, tau = tau, kern = kern)
   #}
   
   return(bacon_acc)
@@ -468,36 +466,11 @@ get_bacon_acc_rates <- function(hamstr_bacon_fit, tau = 0, kern = c("U", "G", "B
 }
 
 
-#' #' Summarise Bacon Accumulation Rates
-#' #'
-#' #' @param hamstr_bacon_fit
-#' #' @return
-#' #' @keywords internal
-#' summarise_bacon_acc_rates <- function(hamstr_bacon_fit){
-#'   
-#'   x <- get_bacon_acc_rates(hamstr_bacon_fit)
-#'   
-#'   x_sum <- x %>%
-#'     tidyr::pivot_longer(cols = c(time_per_depth, depth_per_time), names_to = "acc_rate_unit") %>%
-#'     dplyr::group_by(depth, c_depth_top, c_depth_bottom, acc_rate_unit, idx) %>%
-#'     dplyr::summarise(mean = mean(value),
-#'                      #se_mean = NA,
-#'                      sd = stats::sd(value),
-#'                      `2.5%` = stats::quantile(value, probs = c(0.025), na.rm = T),
-#'                      `25%` = stats::quantile(value, probs = c(0.25), na.rm = T),
-#'                      `50%` = stats::quantile(value, probs = c(0.50), na.rm = T),
-#'                      `75%` = stats::quantile(value, probs = c(0.75), na.rm = T),
-#'                      `97.5%` = stats::quantile(value, probs = c(0.975), na.rm = T)) %>%
-#'     dplyr::ungroup() %>%
-#'     dplyr::arrange(acc_rate_unit, depth)
-#'   
-#'   return(x_sum)
-#'   
-#' }
 
 #' Plot summarised Bacon accumulation rates
 #'
-#' @param hamstr_bacon_fit
+#' @param hamstr_bacon_fit a hamstr_bacon_fit object
+#' @inheritParams hamstr:::plot_hamstr
 #' @return
 #' @keywords internal
 plot_bacon_acc_rates <- function(hamstr_bacon_fit,
@@ -516,7 +489,7 @@ plot_bacon_acc_rates <- function(hamstr_bacon_fit,
   
   acc_rates_long %>%
     dplyr::filter(acc_rate_unit %in% units) %>%
-    plot_downcore_summary(.) +
+    hamstr:::plot_downcore_summary(.) +
     ggplot2::labs(x = "Depth", y = "Accumulation rate") +
     ggplot2::facet_wrap(~acc_rate_unit, scales = "free_y")
   
@@ -529,9 +502,7 @@ plot_bacon_acc_rates <- function(hamstr_bacon_fit,
 #' Interpolate Age Models at Given Depths
 #' @description Method for generic function predict. Returns the posterior age
 #' models interpolated to new depths given in depth.
-#' @param object
-#' @param depth
-#' @inheritParams interpolate_bacon_age_models
+#' @inheritParams hamstr:::predict.hamstr_fit
 #' @return
 #'
 #' @examples
@@ -552,7 +523,7 @@ predict.hamstr_bacon_fit <- function(object, type = c("age_models", "acc_rates")
 
 #' Title
 #'
-#' @param object a hamstr_bacon_fit object
+#' @param hamstr_bacon_fit a hamstr_bacon_fit object
 #' @return A ggplot object
 #'
 #' @examples
@@ -572,15 +543,14 @@ plot.hamstr_bacon_fit <- function(hamstr_bacon_fit,
          default = plot_hamstr_bacon_fit(hamstr_bacon_fit, summarise = summarise, ...),
          age_models = plot_hamstr_bacon_fit(hamstr_bacon_fit, summarise = summarise,
                                             ...),
-         acc_rates = plot_hamstr_acc_rates(hamstr_bacon_fit, ...)
+         acc_rates = hamstr:::plot_hamstr_acc_rates(hamstr_bacon_fit, ...)
          )
 }
 
 
 #' Summarise hamstr_bacon Age Models
 #'
-#' @param object
-#' @param type
+#' @inheritParams hamstr:::predict.hamstr_fit
 #'
 #' @return
 #'
@@ -603,8 +573,7 @@ summary.hamstr_bacon_fit <- function(object, type = c("default",
 
 #' Summarise hamstr_bacon Age Models
 #'
-#' @param object
-#' @param type
+#' @inheritParams hamstr:::predict.hamstr_fit
 #'
 #' @return
 #'
