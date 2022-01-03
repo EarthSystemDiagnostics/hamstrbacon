@@ -38,58 +38,74 @@ remotes::install_github("earthsystemdiagnostics/hamstrbacon")
 ```
 
 
-## Using **hamstr**
 
-Examples using the example core "MSB2K" from the [rbacon](https://cran.r-project.org/web/packages/rbacon/index.html) package.
+
+
+
+## Fitting age-models with **rbacon** via **hamstrbacon**
+
+
+Using the example core "MSB2K" from the [rbacon](https://cran.r-project.org/web/packages/rbacon/index.html) package.
 
 
 ```{r setup, message=FALSE}
 library(hamstrbacon)
-
-set.seed(20200827)
 ```
 
 
-
-
-### Fitting age-models with **rbacon** via **hamstrbacon**
-
-
 ```{r run-hamstrbacon}
-MSB2K <- hamstr::MSB2K
-
 hambac_1 <- hamstr_bacon(id = "tst", 
                          depth = MSB2K$depth,
                          obs_age = MSB2K$age,
                          obs_err = MSB2K$error,
                          thick = 5, cc = 1,
-                         seed = 20220103)
+                         # pass seed to rbacon so that mcmc sample is the same
+                         # each time for the example
+                         seed = 20220103
+                         )
 ```
 
+
+### Plot the Bacon model with hamstr plotting functions
 
 ```{r}
 plot(hambac_1)
 ```
 
+
+### Extract summary downcore age-depth model
+
 ```{r}
 summary(hambac_1)
 ```
+
+
+### Get the individual model realisations
 
 ```{r}
 predict(hambac_1)
 ```
 
-```{r}
+
+### Plot the accumulation rates
+
+```{r, fig.height=6}
 plot(hambac_1, type = "acc")
 ```
 
-If you want specific depths you can ask for them and the age models will be linearly interpolated
+Smooth the accumulation rates with 10 cm filter before calculating the statistics 
+
+```{r, fig.height=6}
+plot(hambac_1, type = "acc", tau = 10)
+```
+
+### Get the ages interpolated at specific depths
+
 
 ```{r}
 spec_depths <- predict(hambac_1, depth = c(10:15))
 
 spec_depths
-
 ```
 
 Summary also works after interpolation

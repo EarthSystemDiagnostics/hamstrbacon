@@ -17,33 +17,30 @@ if (!require("remotes")) {
 remotes::install_github("earthsystemdiagnostics/hamstrbacon")
 ```
 
-## Using **hamstr**
+## Fitting age-models with **rbacon** via **hamstrbacon**
 
-Examples using the example core “MSB2K” from the
+Using the example core “MSB2K” from the
 [rbacon](https://cran.r-project.org/web/packages/rbacon/index.html)
 package.
 
 ``` r
 library(hamstrbacon)
-
-set.seed(20200827)
 ```
 
-### Fitting age-models with **rbacon** via **hamstrbacon**
-
 ``` r
-MSB2K <- hamstr::MSB2K
-
 hambac_1 <- hamstr_bacon(id = "tst", 
                          depth = MSB2K$depth,
                          obs_age = MSB2K$age,
                          obs_err = MSB2K$error,
                          thick = 5, cc = 1,
-                         seed = 20220103)
-#> The run's files will be put in this folder: C:\Users\Andrew\AppData\Local\Temp/Rtmp42oaFE
+                         # pass seed to rbacon so that mcmc sample is the same
+                         # each time for the example
+                         seed = 20220103
+                         )
+#> The run's files will be put in this folder: C:\Users\Andrew\AppData\Local\Temp/RtmpcL1Pso
 #> Warning in file(con, "r"): file("") only supports open = "w+" and open = "w+b":
 #> using the former
-#> Reading C:\Users\Andrew\AppData\Local\Temp/Rtmp42oaFE/Rtmp42oaFE_21.bacon
+#> Reading C:\Users\Andrew\AppData\Local\Temp/RtmpcL1Pso/RtmpcL1Pso_21.bacon
 #> Constant calibration curve.
 #> IntCal20: Reading from file: C:\Users\Andrew\Documents\R\win-library\4.1\IntCal\extdata/3Col_intcal20.14C
 #> Marine20: Reading from file: C:\Users\Andrew\Documents\R\win-library\4.1\IntCal\extdata/3Col_marine20.14C
@@ -91,25 +88,29 @@ hambac_1 <- hamstr_bacon(id = "tst",
 #> BaconFixed: Bacon jumps model with fixed c's.
 #>             K=21, H=0, dim=23, Seed=20220103, Dc=5.000000, c(0)=1.500000, c(K)=106.500000
 #> 
-#> twalk:      5060000 iterations to run, Mon Jan 03 12:06:47 2022
+#> twalk:      5060000 iterations to run, Mon Jan 03 12:14:29 2022
 #>        
-#> twalk thinning: 1 out of every 115 accepted iterations will be saved in file C:\Users\Andrew\AppData\Local\Temp/Rtmp42oaFE/Rtmp42oaFE_21.out
-#> twalk: Finished,  0.7% of moved pars per iteration (ratio 35148.956522/5060000). Output in file C:\Users\Andrew\AppData\Local\Temp/Rtmp42oaFE/Rtmp42oaFE_21.out,
-#>       Mon Jan 03 12:07:11 2022
+#> twalk thinning: 1 out of every 115 accepted iterations will be saved in file C:\Users\Andrew\AppData\Local\Temp/RtmpcL1Pso/RtmpcL1Pso_21.out
+#> twalk: Finished,  0.7% of moved pars per iteration (ratio 35148.956522/5060000). Output in file C:\Users\Andrew\AppData\Local\Temp/RtmpcL1Pso/RtmpcL1Pso_21.out,
+#>       Mon Jan 03 12:14:53 2022
 #> 
 #> bacon: burn in (initial iterations which will be removed): 23000
 #> Eso es to...eso es to...eso es to...eso es toooodo amigos!
 #> Warning in file.remove(i): cannot remove file 'C:
-#> \Users\Andrew\AppData\Local\Temp/Rtmp42oaFE/Rtmp42oaFE_21.bacon', reason
+#> \Users\Andrew\AppData\Local\Temp/RtmpcL1Pso/RtmpcL1Pso_21.bacon', reason
 #> 'Permission denied'
-#> Previous runs of core Rtmp42oaFE with thick=5 cm deleted. Now try running the core again
+#> Previous runs of core RtmpcL1Pso with thick=5 cm deleted. Now try running the core again
 ```
+
+### Plot the Bacon model with hamstr plotting functions
 
 ``` r
 plot(hambac_1)
 ```
 
 ![](readme_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+### Extract summary downcore age-depth model
 
 ``` r
 summary(hambac_1)
@@ -129,6 +130,8 @@ summary(hambac_1)
 #> # ... with 12 more rows
 ```
 
+### Get the individual model realisations
+
 ``` r
 predict(hambac_1)
 #> # A tibble: 60,544 x 3
@@ -147,6 +150,8 @@ predict(hambac_1)
 #> # ... with 60,534 more rows
 ```
 
+### Plot the accumulation rates
+
 ``` r
 plot(hambac_1, type = "acc")
 #> Joining, by = "depth"
@@ -154,8 +159,17 @@ plot(hambac_1, type = "acc")
 
 ![](readme_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
-If you want specific depths you can ask for them and the age models will
-be linearly interpolated
+Smooth the accumulation rates with 10 cm filter before calculating the
+statistics
+
+``` r
+plot(hambac_1, type = "acc", tau = 10)
+#> Joining, by = "depth"
+```
+
+![](readme_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+### Get the ages interpolated at specific depths
 
 ``` r
 spec_depths <- predict(hambac_1, depth = c(10:15))
