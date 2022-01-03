@@ -55,15 +55,15 @@ set.seed(20200827)
 ### Fitting age-models with **rbacon** via **hamstrbacon**
 
 
-```{r}
+```{r run-hamstrbacon}
 MSB2K <- hamstr::MSB2K
 
 hambac_1 <- hamstr_bacon(id = "tst", 
                          depth = MSB2K$depth,
-                               obs_age = MSB2K$age,
-                               obs_err = MSB2K$error,
-                               thick = 5, cc = 1,
-                         close.connections = FALSE)
+                         obs_age = MSB2K$age,
+                         obs_err = MSB2K$error,
+                         thick = 5, cc = 1,
+                         seed = 20220103)
 ```
 
 

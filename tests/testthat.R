@@ -1,4 +1,4 @@
 library(testthat)
-library(hamstr)
+library(hamstrbacon)
 
-test_check("hamstr")
+test_check("hamstrbacon")

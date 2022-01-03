@@ -1,6 +1,6 @@
 ## test bacon interface
 
-library(hamstr)
+library(hamstrbacon)
 
 skip_on_cran()
 skip_if_not_installed("rbacon", "2.5.2")

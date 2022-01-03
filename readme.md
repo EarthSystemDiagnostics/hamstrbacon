@@ -1,7 +1,7 @@
 hamstrbacon: An Interface Between rbacon and hamstr.
 ================
 Andrew M. Dolman
-2022-01-02
+2022-01-03
 
 ------------------------------------------------------------------------
 
@@ -36,14 +36,14 @@ MSB2K <- hamstr::MSB2K
 
 hambac_1 <- hamstr_bacon(id = "tst", 
                          depth = MSB2K$depth,
-                               obs_age = MSB2K$age,
-                               obs_err = MSB2K$error,
-                               thick = 5, cc = 1,
-                         close.connections = FALSE)
-#> The run's files will be put in this folder: C:\Users\Andrew\AppData\Local\Temp/Rtmpcf5mzg
+                         obs_age = MSB2K$age,
+                         obs_err = MSB2K$error,
+                         thick = 5, cc = 1,
+                         seed = 20220103)
+#> The run's files will be put in this folder: C:\Users\Andrew\AppData\Local\Temp/Rtmp42oaFE
 #> Warning in file(con, "r"): file("") only supports open = "w+" and open = "w+b":
 #> using the former
-#> Reading C:\Users\Andrew\AppData\Local\Temp/Rtmpcf5mzg/Rtmpcf5mzg_21.bacon
+#> Reading C:\Users\Andrew\AppData\Local\Temp/Rtmp42oaFE/Rtmp42oaFE_21.bacon
 #> Constant calibration curve.
 #> IntCal20: Reading from file: C:\Users\Andrew\Documents\R\win-library\4.1\IntCal\extdata/3Col_intcal20.14C
 #> Marine20: Reading from file: C:\Users\Andrew\Documents\R\win-library\4.1\IntCal\extdata/3Col_marine20.14C
@@ -89,62 +89,62 @@ hambac_1 <- hamstr_bacon(id = "tst",
 #> Added det: tst: 5644.0+-77.0   d=79.5 ResCorr=   0.0+-0.0    a=3 b=4 cc=IntCal20
 #> Added det: tst: 5885.0+-45.0   d=99.5 ResCorr=   0.0+-0.0    a=3 b=4 cc=IntCal20
 #> BaconFixed: Bacon jumps model with fixed c's.
-#>             K=21, H=0, dim=23, Seed=968424, Dc=5.000000, c(0)=1.500000, c(K)=106.500000
+#>             K=21, H=0, dim=23, Seed=20220103, Dc=5.000000, c(0)=1.500000, c(K)=106.500000
 #> 
-#> twalk:      5060000 iterations to run, Sun Jan 02 17:42:59 2022
+#> twalk:      5060000 iterations to run, Mon Jan 03 12:06:47 2022
 #>        
-#> twalk thinning: 1 out of every 115 accepted iterations will be saved in file C:\Users\Andrew\AppData\Local\Temp/Rtmpcf5mzg/Rtmpcf5mzg_21.out
-#> twalk: Finished,  0.7% of moved pars per iteration (ratio 35960.826087/5060000). Output in file C:\Users\Andrew\AppData\Local\Temp/Rtmpcf5mzg/Rtmpcf5mzg_21.out,
-#>       Sun Jan 02 17:43:25 2022
+#> twalk thinning: 1 out of every 115 accepted iterations will be saved in file C:\Users\Andrew\AppData\Local\Temp/Rtmp42oaFE/Rtmp42oaFE_21.out
+#> twalk: Finished,  0.7% of moved pars per iteration (ratio 35148.956522/5060000). Output in file C:\Users\Andrew\AppData\Local\Temp/Rtmp42oaFE/Rtmp42oaFE_21.out,
+#>       Mon Jan 03 12:07:11 2022
 #> 
 #> bacon: burn in (initial iterations which will be removed): 23000
 #> Eso es to...eso es to...eso es to...eso es toooodo amigos!
 #> Warning in file.remove(i): cannot remove file 'C:
-#> \Users\Andrew\AppData\Local\Temp/Rtmpcf5mzg/Rtmpcf5mzg_21.bacon', reason
+#> \Users\Andrew\AppData\Local\Temp/Rtmp42oaFE/Rtmp42oaFE_21.bacon', reason
 #> 'Permission denied'
-#> Previous runs of core Rtmpcf5mzg with thick=5 cm deleted. Now try running the core again
+#> Previous runs of core Rtmp42oaFE with thick=5 cm deleted. Now try running the core again
 ```
 
 ``` r
 plot(hambac_1)
 ```
 
-![](readme_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](readme_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
 summary(hambac_1)
 #> # A tibble: 22 x 8
 #>    depth  mean    sd `2.5%` `25%` `50%` `75%` `97.5%`
 #>    <dbl> <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>   <dbl>
-#>  1   1.5 4540.  66.8  4416. 4494. 4543. 4587.   4661.
-#>  2   6.5 4614.  66.7  4479. 4566. 4616. 4664.   4739.
-#>  3  11.5 4685.  65.2  4551. 4636. 4695. 4737.   4789.
-#>  4  16.5 4753.  63.4  4612. 4706. 4776. 4803.   4838.
-#>  5  21.5 4873.  53.8  4786. 4843. 4860. 4892.   5013.
-#>  6  26.5 5080.  97.4  4896. 5003. 5087. 5155.   5248.
-#>  7  31.5 5335.  61.3  5222. 5296. 5326. 5381.   5449.
-#>  8  36.5 5477.  44.6  5382. 5449. 5477. 5505.   5563.
-#>  9  41.5 5580.  44.7  5490. 5554. 5581. 5603.   5672.
-#> 10  46.5 5684.  56.5  5592. 5646. 5682. 5711.   5833.
+#>  1   1.5 4557.  73.4  4421. 4514. 4558. 4605.   4701.
+#>  2   6.5 4620.  73.3  4471. 4569. 4623. 4672.   4762.
+#>  3  11.5 4686.  68.7  4540. 4637. 4699. 4739.   4793.
+#>  4  16.5 4755.  61.9  4609. 4711. 4776. 4802.   4832.
+#>  5  21.5 4863.  49.7  4765. 4838. 4856. 4885.   4971.
+#>  6  26.5 5101. 100.   4898. 5030. 5109. 5177.   5267.
+#>  7  31.5 5331.  61.5  5212. 5293. 5320. 5377.   5445.
+#>  8  36.5 5478.  44.4  5384. 5451. 5478. 5507.   5563.
+#>  9  41.5 5582.  43.0  5497. 5556. 5582. 5604.   5666.
+#> 10  46.5 5682.  56.6  5591. 5643. 5681. 5711.   5836.
 #> # ... with 12 more rows
 ```
 
 ``` r
 predict(hambac_1)
-#> # A tibble: 61,710 x 3
+#> # A tibble: 60,544 x 3
 #>     iter depth   age
 #>    <dbl> <dbl> <dbl>
-#>  1   501   1.5 4554.
-#>  2   501   6.5 4644.
-#>  3   501  11.5 4765.
-#>  4   501  16.5 4767.
-#>  5   501  21.5 4893.
-#>  6   501  26.5 5243.
-#>  7   501  31.5 5295.
-#>  8   501  36.5 5412.
-#>  9   501  41.5 5515.
-#> 10   501  46.5 5721.
-#> # ... with 61,700 more rows
+#>  1   501   1.5 4585.
+#>  2   501   6.5 4660.
+#>  3   501  11.5 4747.
+#>  4   501  16.5 4770.
+#>  5   501  21.5 4848.
+#>  6   501  26.5 5228.
+#>  7   501  31.5 5322.
+#>  8   501  36.5 5488.
+#>  9   501  41.5 5589.
+#> 10   501  46.5 5631.
+#> # ... with 60,534 more rows
 ```
 
 ``` r
@@ -152,7 +152,7 @@ plot(hambac_1, type = "acc")
 #> Joining, by = "depth"
 ```
 
-![](readme_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](readme_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 If you want specific depths you can ask for them and the age models will
 be linearly interpolated
@@ -161,20 +161,20 @@ be linearly interpolated
 spec_depths <- predict(hambac_1, depth = c(10:15))
 
 spec_depths
-#> # A tibble: 16,830 x 3
+#> # A tibble: 16,512 x 3
 #>     iter depth   age
 #>    <int> <int> <dbl>
-#>  1     1    10 4729.
-#>  2     1    11 4753.
-#>  3     1    12 4765.
-#>  4     1    13 4766.
-#>  5     1    14 4766.
-#>  6     1    15 4766.
-#>  7     2    10 4728.
-#>  8     2    11 4750.
-#>  9     2    12 4762.
-#> 10     2    13 4764.
-#> # ... with 16,820 more rows
+#>  1     1    10 4721.
+#>  2     1    11 4738.
+#>  3     1    12 4749.
+#>  4     1    13 4754.
+#>  5     1    14 4758.
+#>  6     1    15 4763.
+#>  7     2    10 4729.
+#>  8     2    11 4740.
+#>  9     2    12 4748.
+#> 10     2    13 4753.
+#> # ... with 16,502 more rows
 ```
 
 Summary also works after interpolation
@@ -184,12 +184,12 @@ summary(spec_depths)
 #> # A tibble: 6 x 8
 #>   depth  mean    sd `2.5%` `25%` `50%` `75%` `97.5%`
 #>   <int> <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>   <dbl>
-#> 1    10 4664.  61.4  4538. 4619. 4670. 4712.   4769.
-#> 2    11 4678.  63.6  4548. 4630. 4687. 4729.   4781.
-#> 3    12 4692.  63.6  4563. 4644. 4703. 4743.   4791.
-#> 4    13 4706.  61.3  4576. 4659. 4723. 4755.   4796.
-#> 5    14 4719.  60.2  4589. 4674. 4744. 4767.   4802.
-#> 6    15 4733.  60.5  4599. 4688. 4759. 4781.   4811.
+#> 1    10 4666.  66.4  4524. 4618. 4677. 4717.   4781.
+#> 2    11 4679.  67.6  4536. 4631. 4693. 4730.   4788.
+#> 3    12 4693.  66.4  4548. 4645. 4709. 4744.   4795.
+#> 4    13 4707.  62.8  4571. 4660. 4726. 4755.   4799.
+#> 5    14 4720.  60.5  4588. 4675. 4746. 4767.   4804.
+#> 6    15 4734.  59.9  4598. 4690. 4760. 4782.   4811.
 ```
 
 ### References
