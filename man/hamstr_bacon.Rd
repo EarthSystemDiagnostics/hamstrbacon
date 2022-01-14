@@ -48,7 +48,8 @@ hamstr_bacon(
   plot.pdf = FALSE,
   close.connections = FALSE,
   verbose = FALSE,
-  suppress.plots = TRUE
+  suppress.plots = TRUE,
+  bacon.change.thick = FALSE
 )
 }
 \arguments{
@@ -155,6 +156,9 @@ Accept these suggested alternative settings by typing "y" (or "yes please" if yo
 \item{close.connections}{Internal option to close connections after a run. Default \code{close.connections=TRUE}.}
 
 \item{verbose}{Provide feedback on what is happening (default \code{verbose=TRUE}).}
+
+\item{bacon.change.thick}{Optionally allow Bacon to change the default or user
+supplied thick parameter}
 }
 \value{
 
@@ -166,7 +170,7 @@ Wraps the Bacon function from rbacon so that it can be used in a
   boundaries, different calibration curves, postbomb curves.
   "accept.suggestions" defaults to TRUE so that the Bacon's accumulation rate
   prior suggestion is used by default, however, the section thickness
-  parameter "thick" is not changed.
+  parameter "thick" is by default allowed to be changed.
 }
 \examples{
 \dontrun{

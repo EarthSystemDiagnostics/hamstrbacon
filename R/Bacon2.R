@@ -14,12 +14,13 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
                     burnin = min(500, ssize), MinAge = c(), MaxAge = c(), MinYr = MinAge, MaxYr = MaxAge,
                     cutoff = 0.01, plot.pdf = TRUE, dark = 1, date.res = 100,
                     age.res = 200, yr.res = age.res, close.connections = TRUE,
-                    verbose = TRUE, suppress.plots = TRUE, ...)
+                    verbose = TRUE, suppress.plots = TRUE, bacon.change.thick = FALSE,
+                    ...)
 {
-
+  
   # Temporarily attach all internal functions from package rbacon
   attach(loadNamespace("rbacon"), name = "rbacon_all", warn.conflicts = FALSE)
-
+  
   coredir <- assign_coredir(coredir, core, ask, isPlum = FALSE)
   if (core == "MSB2K" || core == "RLGH3") {
     dir.create(paste(coredir, core, "/", sep = ""),
@@ -35,7 +36,7 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
     ccdir <- validateDirectoryName(ccdir)
   }  else {
     ccdir <- .validateDirectoryName(ccdir)
-    }
+  }
   
   defaults <- system.file("extdata", defaults, package = packageName())
   dets <- read.dets(core, coredir, sep = sep, dec = dec, cc = cc)
@@ -77,13 +78,13 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
     stop("The prior for the mean of the memory should be between 0 and 1",
          FALSE)
   if (!is.na(boundary[1])){
-     boundary <- sort(unique(boundary))
-     
-     if (length(acc.mean) == 1)
-       acc.mean <- rep(acc.mean, length(boundary) +
-                         1)
+    boundary <- sort(unique(boundary))
+    
+    if (length(acc.mean) == 1)
+      acc.mean <- rep(acc.mean, length(boundary) +
+                        1)
   }
-   
+  
   
   if (!is.na(hiatus.depths[1])) {
     hiatus.depths <- sort(unique(hiatus.depths))
@@ -202,10 +203,12 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
                                  info$K, ", possibly hard to run). Suggested minimum value for thick: ",
                                  sugg, " OK? (y/n) "))
   }
+  # allow changing of thick by bacon
   if (tolower(substr(ans, 1, 1)) == "y") {
-    # disable changing of thick
-    #message(" Setting thick to ", sugg, "\n")
-    #thick <- sugg
+    if (bacon.change.thick) {
+      message(" Setting thick to ", sugg, "\n")
+      thick <- sugg
+    }
     info$thick = thick
     info$elbows <- seq(floor(info$d.min), ceiling(info$d.max),
                        by = thick)
@@ -257,27 +260,27 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
     info$hiatus.max <- add
   }
   assign_to_global("info", info)
-
-
+  
+  
   prepare <- function() {
     if (suppress.plots == FALSE){
-    pn <- c(1, 2, 3, 3)
-    if (!is.na(info$hiatus.depths[1]))
-      if (is.na(info$boundary[1]))
-        pn <- c(1, 2, 3, 4, 4, 4)
-    layout(matrix(pn, nrow = 2, byrow = TRUE), heights = c(0.3,
-                                                           0.7))
-    oldpar <- par(mar = c(3, 3, 1, 1), mgp = c(1.5, 0.7,
-                                               0), bty = "l")
-    on.exit(par(oldpar))
-    PlotAccPrior(info$acc.shape, info$acc.mean, depth.unit = depth.unit,
-                 age.unit = age.unit)
-    PlotMemPrior(info$mem.strength, info$mem.mean, thick)
-    if (!is.na(info$hiatus.depths)[1])
-      if (is.na(info$boundary)[1])
-        PlotHiatusPrior(info$hiatus.max, info$hiatus.depths)
-    calib.plot(info, BCAD = BCAD)
-    legend("topleft", core, bty = "n", cex = 1.5)
+      pn <- c(1, 2, 3, 3)
+      if (!is.na(info$hiatus.depths[1]))
+        if (is.na(info$boundary[1]))
+          pn <- c(1, 2, 3, 4, 4, 4)
+      layout(matrix(pn, nrow = 2, byrow = TRUE), heights = c(0.3,
+                                                             0.7))
+      oldpar <- par(mar = c(3, 3, 1, 1), mgp = c(1.5, 0.7,
+                                                 0), bty = "l")
+      on.exit(par(oldpar))
+      PlotAccPrior(info$acc.shape, info$acc.mean, depth.unit = depth.unit,
+                   age.unit = age.unit)
+      PlotMemPrior(info$mem.strength, info$mem.mean, thick)
+      if (!is.na(info$hiatus.depths)[1])
+        if (is.na(info$boundary)[1])
+          PlotHiatusPrior(info$hiatus.max, info$hiatus.depths)
+      calib.plot(info, BCAD = BCAD)
+      legend("topleft", core, bty = "n", cex = 1.5)
     }
   }
   cook <- function() {
@@ -285,9 +288,9 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
     bacon(txt, outfile, ssize, ccdir)
     scissors(burnin, info)
     if (suppress.plots == FALSE){
-    agedepth(info, BCAD = BCAD, depths.file = depths.file,
-             depths = depths, verbose = TRUE, age.unit = age.unit,
-             depth.unit = depth.unit, ...)
+      agedepth(info, BCAD = BCAD, depths.file = depths.file,
+               depths = depths, verbose = TRUE, age.unit = age.unit,
+               depth.unit = depth.unit, ...)
     }
     if (plot.pdf)
       if (interactive())
@@ -306,19 +309,19 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
     prepare()
   else if (!ask)
     cook()  else {
-    prepare()
-    if (accept.suggestions)
-      ans <- "y"
-    else ans <- readline(message(" Run ", core, " with ",
-                                 info$K, " sections? (Y/n) "))
-    ans <- tolower(substr(ans, 1, 1))[1]
-    if (ans == "y" || ans == "")
-      cook()
-    else message("  OK. Please adapt settings")
-  }
+      prepare()
+      if (accept.suggestions)
+        ans <- "y"
+      else ans <- readline(message(" Run ", core, " with ",
+                                   info$K, " sections? (Y/n) "))
+      ans <- tolower(substr(ans, 1, 1))[1]
+      if (ans == "y" || ans == "")
+        cook()
+      else message("  OK. Please adapt settings")
+    }
   if (close.connections)
     closeAllConnections()
-
+  
   # detach internal rbacon functions
   detach("rbacon_all")
   

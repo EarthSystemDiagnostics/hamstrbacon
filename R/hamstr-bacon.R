@@ -8,13 +8,15 @@
 #' @param depth A vector of depths
 #' @param obs_age A vector of observed ages
 #' @param obs_err A vector of errors on the observed ages
+#' @param bacon.change.thick Optionally allow Bacon to change the default or user
+#' supplied thick parameter
 #' @description Wraps the Bacon function from rbacon so that it can be used in a
 #'   more typical "R" way. Returns age-depth models in a format to match hamstr
 #'   output. Most Bacon functionality is accessible, for example hiatuses and
 #'   boundaries, different calibration curves, postbomb curves.
 #'   "accept.suggestions" defaults to TRUE so that the Bacon's accumulation rate
 #'   prior suggestion is used by default, however, the section thickness
-#'   parameter "thick" is not changed.
+#'   parameter "thick" is by default allowed to be changed.
 #' @inheritParams rbacon::Bacon
 #' @return
 #' @export
@@ -55,7 +57,9 @@ hamstr_bacon <- function(
   burnin = min(500, ssize), MinAge = c(), MaxAge = c(),
   plot.pdf = FALSE,
   close.connections = FALSE,
-  verbose = FALSE, suppress.plots = TRUE
+  verbose = FALSE, suppress.plots = TRUE,
+  bacon.change.thick = FALSE
+  
 ){
   if(packageVersion("rbacon") < "2.5.2")
     stop("hamstr_bacon requires rbacon version 2.5.2 or higher")
