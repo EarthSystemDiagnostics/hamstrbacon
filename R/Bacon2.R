@@ -119,15 +119,21 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
   if (min(acc.shape) < 1)
     warning("\nWarning, using values <1 for acc.shape might cause unexpected results\n",
             call. = TRUE)
-  if (info$cc > 0)
-    if (info$postbomb == 0 && ((ncol(info$dets) == 4 && min(info$dets[,
-                                                                      2]) < 0) || ncol(info$dets) > 4 && max(info$dets[,
-                                                                                                                       5]) > 0 && min(info$dets[info$dets[, 5] > 0, 2]) <
-                               0))
-      stop("you have negative C14 ages so should select a postbomb curve",
-           call. = FALSE)
-  info$calib <- bacon.calib(dets, info, date.res, ccdir = ccdir,
-                            cutoff = cutoff)
+  ### calibrate dates - suggestion by Maarten
+  negativeages <- FALSE
+  if(info$postbomb == 0) # no postbomb curve selected
+    if(ncol(info$dets) == 4) { # not much info on which calcurve to use
+      if(info$cc > 0) # we are using C-14 dates
+        if(min(info$dets[,2]) < 0) # negative C-14 ages
+          negativeages <- TRUE
+    } else # then we have a cc column, which is helpful
+        if(max(info$dets[,5]) > 0) # using radiocarbon dates
+          if(min(info$dets[which(info$dets[,5] > 0),2]) < 0) # negative C14 ages
+            negativeages <- TRUE
+  if(negativeages)
+    stop("you have negative C14 ages so should select a postbomb curve", call.=FALSE)
+  info$calib <- bacon.calib(dets, info, date.res, ccdir=ccdir, cutoff=cutoff)
+  ###
   info$rng <- c()
   for (i in 1:length(info$calib$probs)) {
     tmp <- info$calib$probs[[i]]
