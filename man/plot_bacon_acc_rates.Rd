@@ -12,9 +12,6 @@ plot_bacon_acc_rates(
 \arguments{
 \item{hamstr_bacon_fit}{a hamstr_bacon_fit object}
 }
-\value{
-
-}
 \description{
 Plot summarised Bacon accumulation rates
 }

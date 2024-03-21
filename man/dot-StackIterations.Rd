@@ -9,9 +9,6 @@
 \arguments{
 \item{x}{extracted bacon age models}
 }
-\value{
-
-}
 \description{
 Stack iterations
 }

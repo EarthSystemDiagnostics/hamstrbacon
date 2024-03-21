@@ -2,6 +2,7 @@
 % Please edit documentation in R/hamstrbacon-package.R
 \docType{package}
 \name{hamstrbacon-package}
+\alias{hamstrbacon}
 \alias{hamstrbacon-package}
 \title{The 'hamstrbacon' package.}
 \description{
@@ -13,4 +14,8 @@ hamstrbacon provides an interface between rbacon and hamstr so
 "Blaauw, Maarten, and J. Andrés Christen. 2011. 'Flexible
   Paleoclimate Age-Depth Models Using an Autoregressive Gamma Process.'
   Bayesian Analysis 6 (3): 457-74. doi:10.1214/ba/1339616472"
+}
+\author{
+\strong{Maintainer}: Andrew Dolman \email{andrew.dolman@awi.de}
+
 }

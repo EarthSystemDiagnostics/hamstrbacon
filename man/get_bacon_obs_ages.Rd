@@ -9,9 +9,6 @@ get_bacon_obs_ages(hamstr_bacon_fit)
 \arguments{
 \item{hamstr_bacon_fit}{}
 }
-\value{
-
-}
 \description{
 Title
 }

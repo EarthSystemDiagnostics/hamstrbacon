@@ -6,14 +6,6 @@
 \usage{
 \method{summary}{hamstr_bacon_fit}(object, type = c("default", "age_models", "acc_rates"), ...)
 }
-\arguments{
-\item{object}{hamstr_fit object}
-
-\item{type}{age models "age_models" or accumulation rates "acc_rates"}
-}
-\value{
-
-}
 \description{
 Summarise hamstr_bacon Age Models
 }

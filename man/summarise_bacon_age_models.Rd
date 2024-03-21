@@ -9,9 +9,6 @@ summarise_bacon_age_models(hamstr_bacon_fit)
 \arguments{
 \item{hamstr_bacon_fit}{}
 }
-\value{
-
-}
 \description{
 Summarise Bacon age models
 }

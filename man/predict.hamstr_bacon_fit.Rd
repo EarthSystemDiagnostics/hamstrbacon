@@ -11,19 +11,6 @@
   ...
 )
 }
-\arguments{
-\item{object}{hamstr_fit object}
-
-\item{type}{age models "age_models" or accumulation rates "acc_rates"}
-
-\item{depth}{Defaults to "modelled", which returns the modelled depths.
-"data" returns age models at the depths of the observations, or a numerical
- vector to specify depths. Accumulation rates are only returned at the 
- modelled depths.}
-}
-\value{
-
-}
 \description{
 Method for generic function predict. Returns the posterior age
 models interpolated to new depths given in depth.

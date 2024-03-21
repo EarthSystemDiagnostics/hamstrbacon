@@ -47,14 +47,14 @@ hamstr_bacon <- function(
   hiatus.depths = NA, hiatus.max = 10000,
   add = c(),
   cc = 1, cc1 = "IntCal20", cc2 = "Marine20", cc3 = "SHCal20",
-  cc4 = "ConstCal", ccdir = "", postbomb = 0, delta.R = 0,
+  cc4 = "ConstCal", cc.dir = "", postbomb = 0, delta.R = 0,
   delta.STD = 0, t.a = 3, t.b = 4, normal = FALSE,
   suggest = TRUE, accept.suggestions = TRUE,
   reswarn = c(10, 200),
   ask = FALSE,
   slump = c(),
   remove = FALSE, ssize = 2000, th0 = c(),
-  burnin = min(500, ssize), MinAge = c(), MaxAge = c(),
+  burnin = min(500, ssize), youngest.age = c(), MaxAge = c(),
   plot.pdf = FALSE,
   close.connections = FALSE,
   verbose = FALSE, suppress.plots = TRUE,
@@ -115,12 +115,12 @@ hamstr_bacon <- function(
   pars$coredir = normalizePath(paste0(dirnm, "/"))
 
   # subset of args for Bacon
-  to.keep <- names(pars) %in% methods::formalArgs(Bacon2)
+  to.keep <- names(pars) %in% methods::formalArgs(Bacon3)
   pars <- pars[to.keep]
 
 
   # get defaults values of arguments to Bacon
-  default.args <- formals(Bacon2)
+  default.args <- formals(Bacon3)
   default.arg.nms <- names(default.args)
 
   # Overwrite the defaults with non-null passed arguments
@@ -141,7 +141,7 @@ hamstr_bacon <- function(
   # Call Bacon
 
 
-  do.call(Bacon2, pars)
+  do.call(Bacon3, pars)
 
   par_list <- info[names(info) %in% names(pars)]
 
@@ -321,7 +321,7 @@ summarise_interpolated_bacon_age_models <- function(interpolated_age_mods){
 #'
 #' @return
 #' @keywords internal
-plot_hamstr_bacon_fit <- function(hamstr_bacon_fit, summarise = TRUE, n.iter = 1000) {
+plot_hamstr_bacon_fit <- function(hamstr_bacon_fit, summarise = TRUE, n.iter = 1000, ...) {
 
   if (summarise == TRUE){
     p.fit <- plot_summary_bacon_age_models(hamstr_bacon_fit)

@@ -5,13 +5,13 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
                     acc.mean = 20, mem.strength = 10, mem.mean = 0.5, boundary = NA,
                     hiatus.depths = NA, hiatus.max = 10000, add = c(), after = 1e-04/thick,
                     cc = 1, cc1 = "IntCal20", cc2 = "Marine20", cc3 = "SHCal20",
-                    cc4 = "ConstCal", ccdir = "", postbomb = 0, delta.R = 0,
+                    cc4 = "ConstCal", cc.dir = c(), postbomb = 0, delta.R = 0,
                     delta.STD = 0, t.a = 3, t.b = 4, normal = FALSE, suggest = TRUE,
                     accept.suggestions = TRUE, reswarn = c(10, 200), remember = FALSE,
                     ask = TRUE, run = TRUE, defaults = "defaultBacon_settings.txt",
                     sep = ",", dec = ".", runname = "", slump = c(),
                     remove = FALSE, BCAD = FALSE, ssize = 2000, th0 = c(),
-                    burnin = min(500, ssize), MinAge = c(), MaxAge = c(), MinYr = MinAge, MaxYr = MaxAge,
+                    burnin = min(500, ssize), youngest.age = c(), oldest.age = c(), MinYr = youngest.age, MaxYr = oldest.age,
                     cutoff = 0.01, plot.pdf = TRUE, dark = 1, date.res = 100,
                     age.res = 200, yr.res = age.res, close.connections = TRUE,
                     verbose = TRUE, suppress.plots = TRUE, bacon.change.thick = FALSE,
@@ -29,13 +29,13 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
                                    core), package = "rbacon")
     file.copy(fileCopy, coredir, recursive = TRUE, overwrite = FALSE)
   }
-  if (ccdir == "")
-    ccdir <- system.file("extdata", package = "IntCal")
+  if (cc.dir == "")
+    cc.dir <- system.file("extdata", package = "IntCal")
   
   if (packageVersion("rbacon") > "2.5.3"){
-    ccdir <- validateDirectoryName(ccdir)
+    cc.dir <- validateDirectoryName(cc.dir)
   }  else {
-    ccdir <- .validateDirectoryName(ccdir)
+    cc.dir <- .validateDirectoryName(cc.dir)
   }
   
   defaults <- system.file("extdata", defaults, package = packageName())
@@ -101,8 +101,8 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
                          cc1 = cc1, cc2 = cc2, cc3 = cc3, cc4 = cc4, depth.unit = depth.unit,
                          normal = normal, t.a = t.a, t.b = t.b, delta.R = delta.R,
                          delta.STD = delta.STD, prob = prob, defaults = defaults,
-                         runname = runname, ssize = ssize, dark = dark, MinAge = MinAge,
-                         MaxAge = MaxAge, cutoff = cutoff, age.res = age.res,
+                         runname = runname, ssize = ssize, dark = dark, youngest.age = youngest.age,
+                         oldest.age = oldest.age, cutoff = cutoff, age.res = age.res,
                          after = after, age.unit = age.unit)
   assign_to_global("info", info)
   info$coredir <- coredir
@@ -132,7 +132,7 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
             negativeages <- TRUE
   if(negativeages)
     stop("you have negative C14 ages so should select a postbomb curve", call.=FALSE)
-  info$calib <- bacon.calib(dets, info, date.res, ccdir=ccdir, cutoff=cutoff)
+  info$calib <- bacon.calib(dets, info, date.res, cc.dir=cc.dir, cutoff=cutoff)
   ###
   info$rng <- c()
   for (i in 1:length(info$calib$probs)) {
@@ -140,9 +140,9 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
     info$rng <- range(info$rng, tmp[, 1])
   }
   if (length(th0) == 0)
-    info$th0 <- round(rnorm(2, max(MinAge, dets[1, 2]), dets[1,
+    info$th0 <- round(rnorm(2, max(youngest.age, dets[1, 2]), dets[1,
                                                              3]))
-  info$th0[info$th0 < info$MinAge] <- info$MinAge
+  info$th0[info$th0 < info$youngest.age] <- info$youngest.age
   if (length(depths) == 0)
     depths <- seq(info$d.min, info$d.max, by = d.by)
   if (depths.file) {
@@ -291,7 +291,7 @@ Bacon2 <- function (core = "MSB2K", thick = 5, coredir = "",
   }
   cook <- function() {
     txt <- paste(info$prefix, ".bacon", sep = "")
-    bacon(txt, outfile, ssize, ccdir)
+    bacon(txt, outfile, ssize, cc.dir)
     scissors(burnin, info)
     if (suppress.plots == FALSE){
       agedepth(info, BCAD = BCAD, depths.file = depths.file,

@@ -9,9 +9,6 @@ summarise_interpolated_bacon_age_models(interpolated_age_mods)
 \arguments{
 \item{interpolated_age_mods}{}
 }
-\value{
-
-}
 \description{
 Summarise interpolated Bacon age models
 }

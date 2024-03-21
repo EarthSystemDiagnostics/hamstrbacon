@@ -6,12 +6,6 @@
 \usage{
 \method{summary}{hamstr_bacon_interpolated_ages}(object)
 }
-\arguments{
-\item{object}{hamstr_fit object}
-}
-\value{
-
-}
 \description{
 Summarise hamstr_bacon Age Models
 }
